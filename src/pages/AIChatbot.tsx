@@ -127,13 +127,8 @@ export default function AIChatbot() {
     e.preventDefault();
     if (!inputValue.trim()) return;
     
-    setIsTyping(true);
-    // Simulate AI processing
-    setTimeout(() => {
-      setIsTyping(false);
-      setRecentPrompts(prev => [inputValue, ...prev].slice(0, 3));
-      setInputValue('');
-    }, 1500);
+    // Navigate to conversation page with the message
+    window.location.href = `/conversation?message=${encodeURIComponent(inputValue)}`;
   };
 
   const features = [
