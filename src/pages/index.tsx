@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/card"
 import { type ChartConfig, ChartContainer } from "@/components/ui/chart"
 import { SumOfBilling } from "@/lib/calculation"
+import { Link } from "react-router";
 
 export const description = "A radial chart with text"
 
@@ -50,7 +51,7 @@ export default function DealersDashboard() {
     const decimals = intPart === 1 ? 2 : 1;
     
     return parseFloat(value.toFixed(decimals) + unit);
-    }
+  }
     
     
     const chartData = [
@@ -69,6 +70,33 @@ export default function DealersDashboard() {
     
   
   return (
+    (chartData[0].visitors==0) ? (
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Upload Data to Visualize</h2>
+            <p className="mb-6 text-gray-600">Please upload your data file to begin visualization</p>
+            <Link to={"upload"} className="">
+            <Button>
+              Upload Data File
+            </Button>
+            </Link>
+            
+            <input 
+              id="data-upload" 
+              type="file" 
+              className="hidden" 
+              accept=".csv,.xlsx,.json"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  console.log("File selected:", file.name);
+                  // TODO: Implement file processing and visualization logic
+                }
+              }}
+            />
+          </div>
+        </div>
+    ) : 
     <div className="px-6 space-y-6">
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Left Column - Cards */}

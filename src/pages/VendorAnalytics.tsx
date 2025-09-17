@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { GetVendorsAnalysis } from "@/lib/calculation";
 import { 
   Activity, 
   CheckCircle, 
@@ -98,199 +99,6 @@ export interface Vendor {
   notes: string;
 }
 
-export const vendorData: Vendor[] = [
-  { 
-    id: 1, 
-    name: 'Acme Inc.', 
-    joinedDate: '2023-01-15', 
-    fillRate: 98, 
-    reliability: 4.8, 
-    status: 'active',
-    orders: 245,
-    revenue: 125000,
-    trend: 'up',
-    trendValue: 12.5,
-    contact: {
-      name: 'John Smith',
-      email: 'john.smith@acme.com',
-      phone: '(555) 123-4567'
-    },
-    address: {
-      street: '123 Business Ave',
-      city: 'New York',
-      state: 'NY',
-      zip: '10001',
-      country: 'USA'
-    },
-    paymentTerms: 'Net 30',
-    leadTime: 14,
-    performance: {
-      quality: 4.9,
-      delivery: 4.7,
-      communication: 4.8,
-      average: 4.8
-    },
-    notes: 'Reliable vendor with excellent communication. Bulk discounts available on orders over $10,000.',
-    products: [
-      { id: 'p1', name: 'Stainless Steel Fasteners', orderCount: 120, percentage: 49, category: 'Hardware', lastOrdered: '2023-10-15', price: 2.99 },
-      { id: 'p2', name: 'Aluminum Brackets', orderCount: 75, percentage: 30.6, category: 'Hardware', lastOrdered: '2023-10-10', price: 4.99 },
-      { id: 'p3', name: 'Plastic Clips', orderCount: 50, percentage: 20.4, category: 'Plastic', lastOrdered: '2023-10-05', price: 0.99 },
-    ]
-  },
-  { 
-    id: 2, 
-    name: 'Techtronics Ltd', 
-    joinedDate: '2022-08-22', 
-    fillRate: 95, 
-    reliability: 4.6, 
-    status: 'active',
-    orders: 189,
-    revenue: 187000,
-    trend: 'up',
-    trendValue: 8.2,
-    contact: {
-      name: 'Sarah Johnson',
-      email: 'sarah.j@techtronics.com',
-      phone: '(555) 234-5678'
-    },
-    address: {
-      street: '456 Tech Park',
-      city: 'San Francisco',
-      state: 'CA',
-      zip: '94105',
-      country: 'USA'
-    },
-    paymentTerms: 'Net 45',
-    leadTime: 21,
-    performance: {
-      quality: 4.8,
-      delivery: 4.5,
-      communication: 4.7,
-      average: 4.67
-    },
-    notes: 'Specializes in electronic components. Lead times can vary based on component availability.',
-    products: [
-      { id: 'p4', name: 'Microcontrollers', orderCount: 85, percentage: 45, category: 'Electronics', lastOrdered: '2023-10-14', price: 12.99 },
-      { id: 'p5', name: 'Sensors', orderCount: 65, percentage: 34.4, category: 'Electronics', lastOrdered: '2023-10-12', price: 8.50 },
-      { id: 'p6', name: 'Connectors', orderCount: 39, percentage: 20.6, category: 'Electronics', lastOrdered: '2023-10-08', price: 0.75 },
-    ]
-  },
-  { 
-    id: 3, 
-    name: 'Global Textiles', 
-    joinedDate: '2023-03-10', 
-    fillRate: 92, 
-    reliability: 4.2, 
-    status: 'active',
-    orders: 132,
-    revenue: 87500,
-    trend: 'neutral',
-    trendValue: 0.5,
-    contact: {
-      name: 'Maria Garcia',
-      email: 'maria.g@globaltextiles.com',
-      phone: '(555) 345-6789'
-    },
-    address: {
-      street: '789 Fabric Way',
-      city: 'Los Angeles',
-      state: 'CA',
-      zip: '90015',
-      country: 'USA'
-    },
-    paymentTerms: 'Net 30',
-    leadTime: 30,
-    performance: {
-      quality: 4.5,
-      delivery: 4.0,
-      communication: 4.3,
-      average: 4.27
-    },
-    notes: 'Good quality fabrics but longer lead times. Minimum order quantity applies.',
-    products: [
-      { id: 'p7', name: 'Cotton Fabric', orderCount: 70, percentage: 53, category: 'Fabric', lastOrdered: '2023-10-13', price: 5.99 },
-      { id: 'p8', name: 'Polyester Blend', orderCount: 45, percentage: 34.1, category: 'Fabric', lastOrdered: '2023-10-09', price: 4.25 },
-      { id: 'p9', name: 'Linen', orderCount: 17, percentage: 12.9, category: 'Fabric', lastOrdered: '2023-09-28', price: 7.50 },
-    ]
-  },
-  { 
-    id: 4, 
-    name: 'Precision Tools Co.', 
-    joinedDate: '2022-11-05', 
-    fillRate: 99, 
-    reliability: 4.9, 
-    status: 'on-hold',
-    orders: 310,
-    revenue: 210000,
-    trend: 'down',
-    trendValue: 5.3,
-    contact: {
-      name: 'Robert Chen',
-      email: 'robert.c@precistiontools.com',
-      phone: '(555) 456-7890'
-    },
-    address: {
-      street: '321 Industrial Dr',
-      city: 'Chicago',
-      state: 'IL',
-      zip: '60601',
-      country: 'USA'
-    },
-    paymentTerms: 'Net 30',
-    leadTime: 10,
-    performance: {
-      quality: 4.9,
-      delivery: 4.9,
-      communication: 4.8,
-      average: 4.87
-    },
-    notes: 'Currently on hold due to quality control issues in the last batch. Under review.',
-    products: [
-      { id: 'p10', name: 'Drill Bits Set', orderCount: 150, percentage: 48.4, category: 'Tools', lastOrdered: '2023-10-01', price: 29.99 },
-      { id: 'p11', name: 'Wrench Set', orderCount: 95, percentage: 30.6, category: 'Tools', lastOrdered: '2023-09-25', price: 45.50 },
-      { id: 'p12', name: 'Screwdriver Set', orderCount: 65, percentage: 21, category: 'Tools', lastOrdered: '2023-09-20', price: 24.99 },
-    ]
-  },
-  { 
-    id: 5, 
-    name: 'EcoPack Solutions', 
-    joinedDate: '2023-05-18', 
-    fillRate: 96, 
-    reliability: 4.7, 
-    status: 'active',
-    orders: 87,
-    revenue: 52000,
-    trend: 'up',
-    trendValue: 18.7,
-    contact: {
-      name: 'Emily Wilson',
-      email: 'emily.w@ecopack.com',
-      phone: '(555) 567-8901'
-    },
-    address: {
-      street: '654 Green St',
-      city: 'Seattle',
-      state: 'WA',
-      zip: '98101',
-      country: 'USA'
-    },
-    paymentTerms: 'Net 15',
-    leadTime: 7,
-    performance: {
-      quality: 4.8,
-      delivery: 4.7,
-      communication: 4.9,
-      average: 4.8
-    },
-    notes: 'Eco-friendly packaging solutions. Quick turnaround times and excellent customer service.',
-    products: [
-      { id: 'p13', name: 'Recycled Boxes', orderCount: 45, percentage: 51.7, category: 'Packaging', lastOrdered: '2023-10-14', price: 1.20 },
-      { id: 'p14', name: 'Biodegradable Peanuts', orderCount: 28, percentage: 32.2, category: 'Packaging', lastOrdered: '2023-10-11', price: 3.75 },
-      { id: 'p15', name: 'Compostable Mailers', orderCount: 14, percentage: 16.1, category: 'Packaging', lastOrdered: '2023-10-05', price: 0.45 },
-    ]
-  },
-];
-
 const orderData = [
   { month: 'Jan', orders: 200 },
   { month: 'Feb', orders: 300 },
@@ -310,27 +118,33 @@ const vendorContribution = [
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
+
+
 export default function VendorAnalytics() {
+  const vendorData = GetVendorsAnalysis();
+  console.log(vendorData);
+  
   const [timeRange] = useState('monthly');
 
   const stats = [
     {
       title: 'Fill Rate',
-      value: '98.2%',
+      value: (vendorData.reduce((acc, vendor) => acc + vendor.fillRate, 0) / vendorData.length).toFixed(2) + '%',
+
       change: 2.5,
       trend: 'up',
       icon: CheckCircle,
     },
     {
       title: 'Total Vendors',
-      value: '124',
+      value: vendorData.length,
       change: 8,
       trend: 'up',
       icon: Users,
     },
     {
       title: 'Active Vendors',
-      value: '98',
+      value: vendorData.length,
       change: 1.2,
       trend: 'up',
       icon: Activity,
@@ -486,35 +300,35 @@ export default function VendorAnalytics() {
                   </TableHeader>
                   <TableBody>
                     {vendorData.map((vendor) => (
-                      <TableRow key={vendor.id}>
+                      <TableRow key={vendor.vendor}>
                         <TableCell className="font-medium">
-                          <Link to={`/vendors/${vendor.id}`} className="text-primary hover:underline">
-                            {vendor.name}
+                          <Link to={`/vendors/${vendor.vendor}`} className="text-primary hover:underline">
+                            {vendor.vendor}
                           </Link>
                         </TableCell>
                         <TableCell>
-                          {new Date(vendor.joinedDate).toLocaleDateString()}
+                          
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center">
                             <div className="w-16 mr-2">
                               <Progress value={vendor.fillRate} className="h-2" />
                             </div>
-                            <span>{vendor.fillRate}%</span>
+                            <span>{(vendor.fillRate).toPrecision(2)}%</span>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center">
                             <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1" />
-                            {vendor.reliability}
+                            {(Math.random()*10).toPrecision(2)}
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge 
-                            variant={vendor.status === 'active' ? 'default' : 'secondary'}
-                            className={vendor.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
+                            variant={'default'}
+                            className={'bg-green-100 text-green-800'}
                           >
-                            {vendor.status === 'active' ? 'Active' : 'Inactive'}
+                            {'Active'}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
@@ -541,7 +355,7 @@ export default function VendorAnalytics() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {vendorData[0]?.products.map((product, i) => (
+                {/* {vendorData[0]?.products.map((product, i) => (
                   <div key={i} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div>
@@ -552,7 +366,7 @@ export default function VendorAnalytics() {
                     </div>
                     <Progress value={product.percentage} className="h-2" />
                   </div>
-                ))}
+                ))} */}
               </div>
             </CardContent>
           </Card>
