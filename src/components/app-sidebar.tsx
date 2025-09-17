@@ -12,6 +12,7 @@ import {
   IconMoneybag,
   IconSparkles,
   IconTargetArrow,
+  IconTruck,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -65,7 +66,7 @@ const data = {
     {
       title: "Vendors",
       url: "/vendors",
-      icon: IconUser,
+      icon: IconTruck,
     },
     {
       title: "Sales Analytics",

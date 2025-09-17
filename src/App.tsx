@@ -9,6 +9,8 @@ import Vendors from "./pages/Vendors"
 import AIInsights from "./pages/AIInsights"
 import Target from "./pages/Target"
 import ProfitAnalysis from "./pages/ProfitAnalysis"
+import VendorAnalytics from "./pages/VendorAnalytics"
+import VendorDetail from "./pages/VendorDetail"
 import ProfilePage from "./pages/Profile"
 import NotificationsPage from "./pages/Notifications"
 
@@ -25,10 +27,11 @@ export default function Page() {
                 <Route path="/open-pos" element={<OpenPos />} />
                 <Route path="/platform" element={<PlatformComparison />} />
                 <Route path="/ai-chat" element={<AiChatPage />} />
-                <Route path="/vendors" element={<Vendors />} />
+                <Route path="/vendors" element={<VendorAnalytics />} />
                 <Route path="/ai-insights" element={<AIInsights />} />
                 <Route path="/target" element={<Target />} />
                 <Route path="/profit-analysis" element={<ProfitAnalysis />} />
+                <Route path="/vendors/:id" element={<VendorDetail />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
               </Routes>
