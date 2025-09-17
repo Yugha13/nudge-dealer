@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,10 +50,53 @@ const AI_RESPONSES = {
 };
 
 export default function Conversation() {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Get initial message from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialMessage = urlParams.get('message');
+    
+    if (initialMessage) {
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        content: initialMessage,
+        sender: 'user',
+        timestamp: new Date()
+      };
+      
+      setMessages([userMessage]);
+      
+      // Generate AI response
+      setTimeout(() => {
+        const aiResponse = getAIResponse(initialMessage);
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: aiResponse.content,
+          sender: 'ai',
+          timestamp: new Date(),
+          actions: aiResponse.actions
+        };
+        
+        setMessages(prev => [...prev, aiMessage]);
+        
+        // Send follow-up
+        setTimeout(() => {
+          const followUpMessage: Message = {
+            id: (Date.now() + 2).toString(),
+            content: aiResponse.followUp,
+            sender: 'ai',
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, followUpMessage]);
+        }, 1000);
+      }, 1500);
+    }
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -113,7 +157,7 @@ export default function Conversation() {
   };
 
   const handleActionClick = (path: string) => {
-    window.location.href = path;
+    navigate(path);
   };
 
   return (

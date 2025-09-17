@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Variants } from 'framer-motion';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Target, BarChart3, Lightbulb, Zap, Plus, Paperclip, Maximize2, Clock, ZapOff, MessageSquare, History, Settings, User, Menu, X, ChevronRight } from 'lucide-react';
@@ -110,6 +111,7 @@ const CHAT_HISTORY = [
 ];
 
 export default function AIChatbot() {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -128,7 +130,7 @@ export default function AIChatbot() {
     if (!inputValue.trim()) return;
     
     // Navigate to conversation page with the message
-    window.location.href = `/conversation?message=${encodeURIComponent(inputValue)}`;
+    navigate(`/conversation?message=${encodeURIComponent(inputValue)}`);
   };
 
   const features = [

@@ -13,6 +13,7 @@ import VendorDetail from "./pages/VendorDetail"
 import ProfilePage from "./pages/Profile"
 import NotificationsPage from "./pages/Notifications"
 import AiChatPage from "./pages/AiChat"
+import Conversation from "./pages/Conversation"
 
 export default function Page() {
   return (
@@ -28,6 +29,7 @@ export default function Page() {
                 <Route path="/platform" element={<PlatformComparison />} />
                 <Route path="/ai-chatbot" element={<AIChatbot />} />
                 <Route path="/ai-chat" element={<AiChatPage />} />
+                <Route path="/conversation" element={<Conversation />} />
                 <Route path="/vendors" element={<VendorAnalytics />} />
                 <Route path="/ai-insights" element={<AIInsights />} />
                 <Route path="/target" element={<Target />} />
