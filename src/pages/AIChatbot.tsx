@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Variants } from 'framer-motion';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Target, BarChart3, Lightbulb, Zap, Plus, Paperclip, Maximize2, Clock, ZapOff, MessageSquare, History, Settings, User, Menu, X } from 'lucide-react';
+import { Sparkles, Target, BarChart3, Lightbulb, Zap, Plus, Paperclip, Maximize2, Clock, ZapOff, MessageSquare, History, Settings, User, Menu, X, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -94,12 +94,29 @@ const TypingIndicator = () => (
   </div>
 );
 
+const CHAT_HISTORY = [
+  {
+    id: '1',
+    title: 'Q4 Sales Analysis',
+    preview: 'Can you analyze our Q4 sales performance and identify key trends?',
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: '2', 
+    title: 'Marketing Campaign ROI',
+    preview: 'Help me calculate the ROI for our recent digital marketing campaigns',
+    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  }
+];
+
 export default function AIChatbot() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [activeChat, setActiveChat] = useState<string | null>(null);
   const [recentPrompts, setRecentPrompts] = useState([
     'Show me sales trends for Q3',
     'Analyze customer feedback',
@@ -188,7 +205,7 @@ export default function AIChatbot() {
                 <Plus className="h-4 w-4" />
                 <span>New Chat</span>
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => setIsHistoryOpen(!isHistoryOpen)}>
                 <History className="h-4 w-4" />
                 <span>History</span>
               </Button>
@@ -224,7 +241,7 @@ export default function AIChatbot() {
                   <Plus className="h-5 w-5 mr-2" />
                   New Chat
                 </Button>
-                <Button variant="outline">
+                <Button variant="outline" onClick={() => setIsHistoryOpen(!isHistoryOpen)}>
                   <History className="h-5 w-5 mr-2" />
                   History
                 </Button>
@@ -234,7 +251,13 @@ export default function AIChatbot() {
         </AnimatePresence>
       </nav>
 
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="relative flex">
+        {/* Main Content */}
+        <div className={cn(
+          "flex-1 transition-all duration-300 ease-in-out",
+          isHistoryOpen ? "mr-80" : "mr-0"
+        )}>
+          <div className="container mx-auto px-4 py-8 max-w-7xl">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -304,6 +327,79 @@ export default function AIChatbot() {
             <AIFeatureCard />
           </div>
 
+          </div>
+        </div>
+
+        {/* History Sidebar */}
+        <motion.div
+          className={cn(
+            "fixed top-0 right-0 h-full w-80 bg-background border-l shadow-lg z-50 overflow-y-auto",
+            "transition-transform duration-300 ease-in-out"
+          )}
+          initial={false}
+          animate={{
+            x: isHistoryOpen ? 0 : '100%'
+          }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+        >
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold">Chat History</h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsHistoryOpen(false)}
+                className="h-8 w-8"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              {CHAT_HISTORY.map((chat) => (
+                <motion.button
+                  key={chat.id}
+                  className={cn(
+                    "w-full text-left p-4 rounded-lg border transition-all duration-200",
+                    "hover:bg-muted/50 hover:border-primary/30",
+                    activeChat === chat.id && "bg-muted border-primary"
+                  )}
+                  onClick={() => {
+                    setActiveChat(chat.id);
+                    // Navigate to chat page logic here
+                  }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="font-medium text-sm mb-2">{chat.title}</div>
+                  <div className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                    {chat.preview}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(chat.timestamp).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Mobile History Toggle */}
+        <Button
+          variant="outline"
+          size="icon"
+          className={cn(
+            "fixed bottom-6 right-6 rounded-full w-12 h-12 shadow-lg z-40 md:hidden"
+          )}
+          onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+        >
+          <History className="h-5 w-5" />
+        </Button>
       </div>
     </div>
   );
