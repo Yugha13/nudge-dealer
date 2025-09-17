@@ -30,21 +30,45 @@ export function useInsights() {
 
   const loadInsights = async () => {
     try {
-      // Try to load from localStorage first
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsedData = JSON.parse(stored);
-        setInsights(parsedData.insights);
-        setSelectedInsightId(parsedData.insights[0]?.id || null);
-      } else {
-        // Load from mockup.json
-        const response = await fetch('/mockup.json');
-        const data = await response.json();
-        setInsights(data.insights);
-        setSelectedInsightId(data.insights[0]?.id || null);
-        // Cache in localStorage
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      }
+      // Always load mockup data
+      const mockupData = [
+        {
+          id: '1',
+          title: 'Sales Trend Analysis',
+          summary: 'Sales have increased by 15% compared to last month',
+          detail: 'Detailed analysis shows that the increase is primarily due to the new product line and improved marketing campaigns.',
+          date: new Date().toISOString(),
+          tags: ['sales', 'trend', 'analysis'],
+          category: 'trend',
+          saved: false,
+          helpful: false
+        },
+        {
+          id: '2',
+          title: 'Inventory Alert',
+          summary: 'Low stock detected for 5 popular items',
+          detail: 'The following items are running low on stock and may need to be reordered soon: Item A, Item B, Item C, Item D, Item E.',
+          date: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+          tags: ['inventory', 'alert', 'stock'],
+          category: 'action',
+          saved: true,
+          helpful: true
+        },
+        {
+          id: '3',
+          title: 'Customer Satisfaction Score',
+          summary: 'Customer satisfaction score is at 4.7/5 this month',
+          detail: 'The customer satisfaction score has improved by 0.2 points compared to last month. Positive feedback highlights excellent customer service and product quality.',
+          date: new Date(Date.now() - 2 * 86400000).toISOString(), // 2 days ago
+          tags: ['customer', 'feedback', 'satisfaction'],
+          category: 'forecast',
+          saved: false,
+          helpful: true
+        }
+      ];
+      
+      setInsights(mockupData);
+      setSelectedInsightId(mockupData[0]?.id || null);
     } catch (error) {
       console.error('Failed to load insights:', error);
     } finally {
@@ -52,10 +76,8 @@ export function useInsights() {
     }
   };
 
-  // Save data to localStorage whenever insights change
+  // Update insights in state only (no persistence to localStorage)
   const saveInsights = (updatedInsights: Insight[]) => {
-    const data = { insights: updatedInsights };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     setInsights(updatedInsights);
   };
 
