@@ -1,0 +1,3 @@
+PO Number,VendorName,OrderedQty,ReceivedQty,PoAmount
+PO-001,ABC Supplier,100,95,1500.00
+PO-002,XYZ Corporation,200,200,3200.00
