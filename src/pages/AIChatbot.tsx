@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Variants } from 'framer-motion';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Target, BarChart3, Lightbulb, Zap, Plus, Paperclip, Maximize2, Clock, ZapOff } from 'lucide-react';
+import { Sparkles, Target, BarChart3, Lightbulb, Zap, Plus, Paperclip, Maximize2, Clock, ZapOff, MessageSquare, History, Settings, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -99,6 +99,7 @@ export default function AIChatbot() {
   const [activeFeature, setActiveFeature] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [recentPrompts, setRecentPrompts] = useState([
     'Show me sales trends for Q3',
     'Analyze customer feedback',
@@ -169,7 +170,71 @@ export default function AIChatbot() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="container mx-auto px-4 py-12 max-w-7xl">
+      {/* Top Navbar */}
+      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="flex items-center">
+              <MessageSquare className="h-6 w-6 text-primary mr-2" />
+              <span className="text-xl font-semibold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                AI Assistant
+              </span>
+            </div>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-6">
+              <Button>
+                <Plus className="h-4 w-4" />
+                <span>New Chat</span>
+              </Button>
+              <Button variant="outline">
+                <History className="h-4 w-4" />
+                <span>History</span>
+              </Button>
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="inline-flex items-center justify-center p-2 rounded-md text-foreground/70 hover:text-foreground focus:outline-none"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden overflow-hidden"
+            >
+              <div className="px-2 pt-2 pb-3 space-y-1">
+              <Button>
+                  <Plus className="h-5 w-5 mr-2" />
+                  New Chat
+                </Button>
+                <Button variant="outline">
+                  <History className="h-5 w-5 mr-2" />
+                  History
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
