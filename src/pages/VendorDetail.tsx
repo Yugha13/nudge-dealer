@@ -1,13 +1,16 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Phone, MapPin, Star, Calendar, Box, DollarSign, Clock, AlertCircle } from 'lucide-react';
+import { 
+  ArrowLeft, Mail, Phone, MapPin, Star, Calendar, Box, DollarSign, Clock, AlertCircle 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { vendorData, type Vendor } from './VendorAnalytics';
+import { type Vendor } from './VendorAnalytics';
+import { GetVendorPOsById,  } from '@/lib/calculation';
 
-const statusVariantMap = {
+const statusVariantMap: Record<string, string> = {
   active: 'bg-green-100 text-green-800',
   inactive: 'bg-gray-100 text-gray-800',
   'on-hold': 'bg-yellow-100 text-yellow-800',
@@ -15,12 +18,10 @@ const statusVariantMap = {
 
 export default function VendorDetail() {
   const { id } = useParams<{ id: string }>();
+  const vendorData: Vendor | null = GetVendorPOsById(id || "1");  
   const navigate = useNavigate();
   
-  // Find the vendor by ID
-  const vendor = vendorData.find(v => v.id === Number(id)) as Vendor | undefined;
-
-  if (!vendor) {
+  if (!vendorData) {
     return (
       <div className="p-6">
         <Button variant="outline" onClick={() => navigate(-1)} className="mb-6">
@@ -39,11 +40,11 @@ export default function VendorDetail() {
     );
   }
 
-  // Calculate performance metrics
+  // Performance metrics (guard against missing performance object)
   const performanceMetrics = [
-    { name: 'Quality', value: vendor.performance.quality },
-    { name: 'Delivery', value: vendor.performance.delivery },
-    { name: 'Communication', value: vendor.performance.communication },
+    { name: 'Quality', value: vendorData.performance?.quality ?? 0 },
+    { name: 'Delivery', value: vendorData.performance?.delivery ?? 0 },
+    { name: 'Communication', value: vendorData.performance?.communication ?? 0 },
   ];
 
   return (
@@ -54,17 +55,19 @@ export default function VendorDetail() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Vendors
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">{vendor.name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{vendorData.name}</h1>
           <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-            <div className="flex items-center">
-              <Calendar className="mr-1 h-4 w-4" />
-              Member since {new Date(vendor.joinedDate).toLocaleDateString()}
-            </div>
-            <Badge 
-              variant={vendor.status === 'active' ? 'default' : 'secondary'}
-              className={statusVariantMap[vendor.status]}
+            {vendorData.joinedDate && (
+              <div className="flex items-center">
+                <Calendar className="mr-1 h-4 w-4" />
+                Member since {new Date(vendorData.joinedDate).toLocaleDateString()}
+              </div>
+            )}
+            <Badge
+              variant={vendorData.status === 'active' ? 'default' : 'secondary'}
+              className={statusVariantMap[vendorData.status] || ''}
             >
-              {vendor.status === 'on-hold' ? 'On Hold' : vendor.status.charAt(0).toUpperCase() + vendor.status.slice(1)}
+              {vendorData.status === 'on-hold' ? 'On Hold' : vendorData.status?.charAt(0).toUpperCase() + vendorData.status?.slice(1)}
             </Badge>
           </div>
         </div>
@@ -88,14 +91,14 @@ export default function VendorDetail() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <h3 className="text-sm font-medium text-muted-foreground">Primary Contact</h3>
-                  <p className="font-medium">{vendor.contact.name}</p>
+                  <p className="font-medium">{vendorData.contact?.name}</p>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Mail className="mr-2 h-4 w-4" />
-                    {vendor.contact.email}
+                    {vendorData.contact?.email}
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Phone className="mr-2 h-4 w-4" />
-                    {vendor.contact.phone}
+                    {vendorData.contact?.phone}
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -103,9 +106,9 @@ export default function VendorDetail() {
                   <div className="flex items-start">
                     <MapPin className="mr-2 h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
                     <div>
-                      <p>{vendor.address.street}</p>
-                      <p>{vendor.address.city}, {vendor.address.state} {vendor.address.zip}</p>
-                      <p>{vendor.address.country}</p>
+                      <p>{vendorData.address?.street}</p>
+                      <p>{vendorData.address?.city}, {vendorData.address?.state} {vendorData.address?.zip}</p>
+                      <p>{vendorData.address?.country}</p>
                     </div>
                   </div>
                 </div>
@@ -124,29 +127,29 @@ export default function VendorDetail() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-medium">Fill Rate</h3>
-                    <span className="text-sm font-medium">{vendor.fillRate}%</span>
+                    <span className="text-sm font-medium">{vendorData.fillRate}%</span>
                   </div>
-                  <Progress value={vendor.fillRate} className="h-2" />
+                  <Progress value={vendorData.fillRate} className="h-2" />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-medium">Reliability</h3>
                     <div className="flex items-center">
                       <Star className="h-4 w-4 fill-yellow-500 text-yellow-500 mr-1" />
-                      <span className="text-sm font-medium">{vendor.reliability}</span>
+                      <span className="text-sm font-medium">{vendorData.reliability}</span>
                     </div>
                   </div>
-                  <Progress value={vendor.reliability * 20} className="h-2" />
+                  <Progress value={(vendorData.reliability ?? 0) * 20} className="h-2" />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-medium">Lead Time</h3>
                     <div className="flex items-center text-sm">
                       <Clock className="h-4 w-4 mr-1" />
-                      {vendor.leadTime} days
+                      {vendorData.leadTime} days
                     </div>
                   </div>
-                  <Progress value={100 - Math.min(vendor.leadTime * 2, 100)} className="h-2" />
+                  <Progress value={100 - Math.min((vendorData.leadTime ?? 0) * 2, 100)} className="h-2" />
                 </div>
               </div>
 
@@ -175,7 +178,7 @@ export default function VendorDetail() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {vendor.products.map((product) => (
+                {vendorData.products?.map((product) => (
                   <div key={product.id} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div>
@@ -196,7 +199,7 @@ export default function VendorDetail() {
                       Last ordered: {new Date(product.lastOrdered).toLocaleDateString()}
                     </div>
                   </div>
-                ))}
+                )) || <p className="text-sm text-muted-foreground">No products available</p>}
               </div>
             </CardContent>
           </Card>
@@ -216,27 +219,27 @@ export default function VendorDetail() {
                     <Box className="h-5 w-5 text-muted-foreground mr-2" />
                     <span className="text-sm font-medium">Total Orders</span>
                   </div>
-                  <span className="font-medium">{vendor.orders}</span>
+                  <span className="font-medium">{vendorData.orders}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <DollarSign className="h-5 w-5 text-muted-foreground mr-2" />
                     <span className="text-sm font-medium">Total Revenue</span>
                   </div>
-                  <span className="font-medium">${vendor.revenue.toLocaleString()}</span>
+                  <span className="font-medium">${vendorData.revenue?.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <Clock className="h-5 w-5 text-muted-foreground mr-2" />
                     <span className="text-sm font-medium">Average Lead Time</span>
                   </div>
-                  <span className="font-medium">{vendor.leadTime} days</span>
+                  <span className="font-medium">{vendorData.leadTime} days</span>
                 </div>
               </div>
               <Separator className="my-4" />
               <div>
                 <h3 className="text-sm font-medium mb-2">Payment Terms</h3>
-                <p className="text-sm text-muted-foreground">{vendor.paymentTerms}</p>
+                <p className="text-sm text-muted-foreground">{vendorData.paymentTerms}</p>
               </div>
             </CardContent>
           </Card>
@@ -248,7 +251,7 @@ export default function VendorDetail() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                {vendor.notes || 'No notes available for this vendor.'}
+                {vendorData.notes || 'No notes available for this vendor.'}
               </p>
             </CardContent>
           </Card>
