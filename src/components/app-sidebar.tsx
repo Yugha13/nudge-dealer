@@ -14,6 +14,7 @@ import {
   IconTargetArrow,
   IconTruck,
   IconMessage,
+  IconClipboardList,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -65,6 +66,11 @@ const data = {
       icon: IconDatabase,
     },
     {
+      title: "Case Analytics",
+      url: "/case-analytics",
+      icon: IconClipboardList,
+    },
+    {
       title: "Vendors",
       url: "/vendors",
       icon: IconTruck,
@@ -99,6 +105,7 @@ const data = {
       url: "/profile",
       icon: IconUser,
     },
+
 
   ]
 }

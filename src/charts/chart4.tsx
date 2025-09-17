@@ -23,21 +23,21 @@ import {
 export const description = "A stacked bar chart with a legend"
 
 const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
+  { platform: "swiggy", gmv: 186, gmvloss: 80 },
+  { platform: "zomato", gmv: 305, gmvloss: 200 },
+  { platform: "blinkit", gmv: 237, gmvloss: 120 },
+  { platform: "zepto", gmv: 73, gmvloss: 190 },
+  { platform: "dunzo", gmv: 209, gmvloss: 130 },
+  { platform: "bigbasket", gmv: 214, gmvloss: 140 },
 ]
 
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
+  gmv: {
+    label: "GMV",
     color: "var(--chart-1)",
   },
-  mobile: {
-    label: "Mobile",
+  gmvloss: {
+    label: "GMV Loss",
     color: "var(--chart-2)",
   },
 } satisfies ChartConfig
@@ -46,7 +46,7 @@ export function ChartBarStacked() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Bar Chart - Stacked + Legend</CardTitle>
+        <CardTitle>GMV Vs GMV Loss</CardTitle>
         <CardDescription>January - June 2024</CardDescription>
       </CardHeader>
       <CardContent>
@@ -54,24 +54,24 @@ export function ChartBarStacked() {
           <BarChart accessibilityLayer data={chartData}>
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="month"
+              dataKey="platform"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
               tickFormatter={(value) => value.slice(0, 3)}
             />
             <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-            <ChartLegend content={<ChartLegendContent />} />
+            <ChartLegend content={<ChartLegendContent payload={chartData} />} />
             <Bar
-              dataKey="desktop"
+              dataKey="gmv"
               stackId="a"
-              fill="var(--color-desktop)"
+              fill="var(--color-gmv)"
               radius={[0, 0, 4, 4]}
             />
             <Bar
-              dataKey="mobile"
+              dataKey="gmvloss"
               stackId="a"
-              fill="var(--color-mobile)"
+              fill="var(--color-gmvloss)"
               radius={[4, 4, 0, 0]}
             />
           </BarChart>

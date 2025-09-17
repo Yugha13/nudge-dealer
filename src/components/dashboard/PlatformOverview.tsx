@@ -55,18 +55,6 @@ export default function PlatformOverview() {
     color: 'bg-green-500'
   },
   {
-    id: 2,
-    name: 'Instamart',
-    isMock: true,
-    logo: '🛒',
-    revenue: '₹2.1M',
-    orders: '10.8K',
-    fillRate: 89.1,
-    status: 'active',
-    growth: 8.7,
-    color: 'bg-blue-500'
-  },
-  {
     id: 3,
     name: 'Zepto',
     logo: '⚡',

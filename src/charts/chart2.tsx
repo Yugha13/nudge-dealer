@@ -21,35 +21,35 @@ import {
 export const description = "A donut chart"
 
 const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 90, fill: "var(--color-other)" },
+  { platform: "swiggy", grns: 275, fill: "var(--color-swiggy)" },
+  { platform: "zomato", grns: 200, fill: "var(--color-zomato)" },
+  { platform: "blinkit", grns: 187, fill: "var(--color-blinkit)" },
+  { platform: "zepto", grns: 173, fill: "var(--color-zepto)" },
+  { platform: "dunzo", grns: 90, fill: "var(--color-dunzo)" },
 ]
 
 const chartConfig = {
-  visitors: {
-    label: "Visitors",
+  grns: {
+    label: "GRNs",
   },
-  chrome: {
-    label: "Chrome",
+  swiggy: {
+    label: "Swiggy",
     color: "var(--chart-1)",
   },
-  safari: {
-    label: "Safari",
+  zomato: {
+    label: "Zomato",
     color: "var(--chart-2)",
   },
-  firefox: {
-    label: "Firefox",
+  blinkit: {
+    label: "Blinkit",
     color: "var(--chart-3)",
   },
-  edge: {
-    label: "Edge",
+  zepto: {
+    label: "Zepto",
     color: "var(--chart-4)",
   },
-  other: {
-    label: "Other",
+  dunzo: {
+    label: "Dunzo",
     color: "var(--chart-5)",
   },
 } satisfies ChartConfig
@@ -58,7 +58,7 @@ export function ChartPieDonut() {
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Pie Chart - Donut</CardTitle>
+        <CardTitle>GRN Cases</CardTitle>
         <CardDescription>January - June 2024</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
@@ -73,8 +73,8 @@ export function ChartPieDonut() {
             />
             <Pie
               data={chartData}
-              dataKey="visitors"
-              nameKey="browser"
+              dataKey="grns"
+              nameKey="platform"
               innerRadius={60}
             />
           </PieChart>

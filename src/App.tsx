@@ -14,6 +14,7 @@ import ProfilePage from "./pages/Profile"
 import NotificationsPage from "./pages/Notifications"
 import AiChatPage from "./pages/AiChat"
 import Conversation from "./pages/Conversation"
+import CaseAnalytics from "./pages/CaseAnalytics"
 
 export default function Page() {
   return (
@@ -37,6 +38,7 @@ export default function Page() {
                 <Route path="/vendors/:id" element={<VendorDetail />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/case-analytics" element={<CaseAnalytics />} />
               </Routes>
             </div>
           </div>

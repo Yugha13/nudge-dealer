@@ -20,17 +20,17 @@ import {
 export const description = "A horizontal bar chart"
 
 const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 73 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
+  { platform: "swiggy", revenue: 1.86 },
+  { platform: "zomato", revenue: 2.05 },
+  { platform: "blinkit", revenue: 2.47 },
+  { platform: "zepto", revenue: 1.3 },
+  { platform: "dunzo", revenue: 2.09 },
+  { platform: "bigbasket", revenue: 2.14 },
 ]
 
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
+  revenue: {
+    label: "Revenue",
     color: "var(--chart-1)",
   },
 } satisfies ChartConfig
@@ -39,7 +39,7 @@ export function ChartBarHorizontal({className}:{className?:string}) {
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle>Bar Chart - Horizontal</CardTitle>
+        <CardTitle>Revenue/Cr</CardTitle>
         <CardDescription>January - June 2024</CardDescription>
       </CardHeader>
       <CardContent>
@@ -52,9 +52,9 @@ export function ChartBarHorizontal({className}:{className?:string}) {
               left: -20,
             }}
           >
-            <XAxis type="number" dataKey="desktop" hide />
+            <XAxis type="number" dataKey="revenue" hide />
             <YAxis
-              dataKey="month"
+              dataKey="platform"
               type="category"
               tickLine={false}
               tickMargin={10}
@@ -65,7 +65,7 @@ export function ChartBarHorizontal({className}:{className?:string}) {
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Bar dataKey="desktop" fill="var(--color-desktop)" radius={5} />
+            <Bar dataKey="revenue" fill="var(--color-revenue)" radius={5} />
           </BarChart>
         </ChartContainer>
       </CardContent>
