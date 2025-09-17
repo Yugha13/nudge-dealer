@@ -8,6 +8,8 @@ import AiChatPage from "./pages/AiChat"
 import Vendors from "./pages/Vendors"
 import AIInsights from "./pages/AIInsights"
 import Target from "./pages/Target"
+import ProfilePage from "./pages/Profile"
+import NotificationsPage from "./pages/Notifications"
 
 export default function Page() {
   return (
@@ -25,6 +27,10 @@ export default function Page() {
                 <Route path="/vendors" element={<Vendors />} />
                 <Route path="/ai-insights" element={<AIInsights />} />
                 <Route path="/target" element={<Target />} />
+                {/* <Route path="/sales-analytics" element={<SalesAnalytics />} /> */}
+                {/* <Route path="/profit-analysis" element={<ProfitAnalysis />} /> */}
+                <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
               </Routes>
             </div>
           </div>

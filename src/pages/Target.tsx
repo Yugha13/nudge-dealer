@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +15,8 @@ import {
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+type Status = 'todo' | 'in_progress' | 'completed';
+
 interface BusinessTarget {
   id: string;
   title: string;
@@ -25,7 +26,7 @@ interface BusinessTarget {
   targetValue: number;
   progress: number;
   deadline: string;
-  status: 'on_track' | 'at_risk' | 'off_track';
+  status: Status;
   createdAt: string;
   updatedAt: string;
   owner: string;
@@ -40,15 +41,15 @@ const categoryIcons = {
 };
 
 const statusColors = {
-  on_track: 'bg-green-500',
-  at_risk: 'bg-yellow-500',
-  off_track: 'bg-red-500'
+  todo: 'bg-gray-400',
+  in_progress: 'bg-blue-500',
+  completed: 'bg-green-500'
 };
 
 const statusLabels = {
-  on_track: 'On Track',
-  at_risk: 'At Risk',
-  off_track: 'Off Track'
+  todo: 'Todo',
+  in_progress: 'In Progress',
+  completed: 'Completed'
 };
 
 const mockTargets: BusinessTarget[] = [
@@ -57,11 +58,11 @@ const mockTargets: BusinessTarget[] = [
     title: 'Quarterly Revenue',
     description: 'Achieve $500K in Q2 revenue',
     category: 'revenue',
-    currentValue: 375000,
+    currentValue: 0,
     targetValue: 500000,
-    progress: 75,
+    progress: 0,
     deadline: '2023-06-30',
-    status: 'on_track',
+    status: 'todo',
     createdAt: '2023-04-01',
     updatedAt: '2023-05-15',
     owner: 'John Doe'
@@ -71,11 +72,11 @@ const mockTargets: BusinessTarget[] = [
     title: 'Monthly Sales Target',
     description: 'Sell 1,000 units of Product X',
     category: 'sales',
-    currentValue: 650,
+    currentValue: 350,
     targetValue: 1000,
-    progress: 65,
+    progress: 35,
     deadline: '2023-05-31',
-    status: 'at_risk',
+    status: 'in_progress',
     createdAt: '2023-05-01',
     updatedAt: '2023-05-15',
     owner: 'Jane Smith'
@@ -85,11 +86,11 @@ const mockTargets: BusinessTarget[] = [
     title: 'Customer Acquisition',
     description: 'Acquire 500 new customers',
     category: 'customers',
-    currentValue: 1200,
-    targetValue: 1500,
-    progress: 80,
+    currentValue: 500,
+    targetValue: 500,
+    progress: 100,
     deadline: '2023-12-31',
-    status: 'on_track',
+    status: 'completed',
     createdAt: '2023-01-01',
     updatedAt: '2023-05-15',
     owner: 'Alex Johnson'
@@ -99,32 +100,23 @@ const mockTargets: BusinessTarget[] = [
     title: 'Inventory Reduction',
     description: 'Reduce excess inventory by 30%',
     category: 'inventory',
-    currentValue: 10,
+    currentValue: 5,
     targetValue: 30,
-    progress: 33,
+    progress: 16,
     deadline: '2023-07-31',
-    status: 'off_track',
+    status: 'in_progress',
     createdAt: '2023-03-15',
     updatedAt: '2023-05-15',
     owner: 'Sarah Wilson'
   }
 ];
 
-function TargetList({ targets, onDelete, onEdit }: { targets: BusinessTarget[]; onDelete: (id: string) => void; onEdit: (target: BusinessTarget) => void }) {
-  return (
-    <div className="space-y-4">
-      {targets.map((target) => (
-        <TargetCard key={target.id} target={target} onDelete={onDelete} onEdit={onEdit} />
-      ))}
-    </div>
-  );
-}
 
 function TargetCard({ target, onDelete, onEdit }: { target: BusinessTarget; onDelete: (id: string) => void; onEdit: (target: BusinessTarget) => void }) {
-  const progressColor = target.progress < 50 ? 'bg-red-500' : target.progress < 80 ? 'bg-yellow-500' : 'bg-green-500';
+  const progressColor = statusColors[target.status];
   
   return (
-    <Card className="mb-4 overflow-hidden hover:shadow-md transition-shadow">
+    <Card className="overflow-hidden hover:shadow-md transition-shadow border-l-4" style={{ borderLeftColor: progressColor }}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
@@ -206,8 +198,8 @@ function AddEditTargetDialog({
       currentValue: 0,
       targetValue: 0,
       progress: 0,
+      status: 'todo',
       deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      status: 'on_track',
       owner: 'John Doe'
     }
   );
@@ -372,22 +364,20 @@ function AddEditTargetDialog({
   );
 }
 
-export default function Targets() {
+// ...
+
+const Targets = () => {
   const [targets, setTargets] = useState<BusinessTarget[]>(mockTargets);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingTarget, setEditingTarget] = useState<BusinessTarget | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState('all');
+  const [editingTarget, setEditingTarget] = useState<BusinessTarget | null>(null);
 
-  const filteredTargets = targets.filter(target => {
-    if (activeTab === 'all') return true;
-    if (activeTab === 'on_track') return target.status === 'on_track';
-    if (activeTab === 'at_risk') return target.status === 'at_risk';
-    if (activeTab === 'off_track') return target.status === 'off_track';
-    return target.category === activeTab;
-  });
+  // Group targets by status for the columns
+  const todoTargets = targets.filter(target => target.status === 'todo');
+  const inProgressTargets = targets.filter(target => target.status === 'in_progress');
+  const completedTargets = targets.filter(target => target.status === 'completed');
 
   const handleAddTarget = () => {
-    setEditingTarget(undefined);
+    setEditingTarget(null);
     setDialogOpen(true);
   };
 
@@ -402,171 +392,129 @@ export default function Targets() {
     }
   };
 
-  const handleSaveTarget = (targetData: Omit<BusinessTarget, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }) => {
-    const now = new Date().toISOString();
-    
-    if (targetData.id) {
-      // Update existing target
-      setTargets(prev => 
-        prev.map(t => 
-          t.id === targetData.id 
-            ? { 
-                ...t, 
-                ...targetData, 
-                updatedAt: now,
-                progress: Math.min(100, Math.round((targetData.currentValue / targetData.targetValue) * 100) || 0)
-              } 
-            : t
-        )
-      );
+  const handleSaveTarget = (targetData: Omit<BusinessTarget, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (editingTarget) {
+      setTargets(targets.map(t => t.id === editingTarget.id ? { 
+        ...t, 
+        ...targetData, 
+        status: targetData.status as Status, // Ensure status is of type Status
+        updatedAt: new Date().toISOString() 
+      } : t));
     } else {
-      // Add new target
       const newTarget: BusinessTarget = {
         ...targetData,
-        id: Date.now().toString(),
-        createdAt: now,
-        updatedAt: now,
-        progress: Math.min(100, Math.round((targetData.currentValue / targetData.targetValue) * 100) || 0)
+        status: targetData.status as Status, // Ensure status is of type Status
+        id: Math.random().toString(36).substr(2, 9),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
-      setTargets(prev => [...prev, newTarget]);
+      setTargets([...targets, newTarget]);
     }
-    
     setDialogOpen(false);
+    setEditingTarget(null);
   };
 
-  // Calculate summary metrics
-  const totalTargets = targets.length;
-  const onTrackTargets = targets.filter(t => t.status === 'on_track').length;
-  const atRiskTargets = targets.filter(t => t.status === 'at_risk').length;
-  const offTrackTargets = targets.filter(t => t.status === 'off_track').length;
-  const averageProgress = totalTargets > 0 
-    ? Math.round(targets.reduce((sum, t) => sum + t.progress, 0) / totalTargets) 
-    : 0;
-
   return (
-    <div className="container mx-auto p-4 md:p-6 max-w-7xl">
-      <div className="flex flex-col space-y-6">
-        {/* Header */}
-        <div className="flex flex-col space-y-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Business Targets</h1>
-              <p className="text-muted-foreground">Track and manage your business objectives and KPIs</p>
+    <div className="container mx-auto p-4">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Business Targets</h1>
+        <Button onClick={handleAddTarget}>
+          <Plus className="mr-2 h-4 w-4" /> Add Target
+        </Button>
+      </div>
+
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Todo Column */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between bg-muted/50 p-3 rounded-lg">
+              <h2 className="font-medium">To Do</h2>
+              <span className="text-sm text-muted-foreground">
+                {todoTargets.length} items
+              </span>
             </div>
-            <Button onClick={handleAddTarget}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Target
-            </Button>
-          </div>
-          
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Targets</CardTitle>
-                <CardDescription className="text-2xl font-bold">{totalTargets}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-xs text-muted-foreground">
-                  <span className="text-green-500">+2.5%</span> from last month
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">On Track</CardTitle>
-                <CardDescription className="text-2xl font-bold">{onTrackTargets}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-xs text-muted-foreground">
-                  <span className="text-green-500">+{Math.round((onTrackTargets / totalTargets) * 100) || 0}%</span> of total
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">At Risk</CardTitle>
-                <CardDescription className="text-2xl font-bold">{atRiskTargets}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-xs text-muted-foreground">
-                  <span className="text-yellow-500">{totalTargets > 0 ? Math.round((atRiskTargets / totalTargets) * 100) : 0}%</span> of total
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Off Track</CardTitle>
-                <CardDescription className="text-2xl font-bold">{offTrackTargets}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-xs text-muted-foreground">
-                  <span className="text-red-500">{totalTargets > 0 ? Math.round((offTrackTargets / totalTargets) * 100) : 0}%</span> of total
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Average Progress</CardTitle>
-                <CardDescription className="text-2xl font-bold">{averageProgress}%</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Progress value={averageProgress} className="h-2" />
-              </CardContent>
-            </Card>
-          </div>
-          
-          {/* Tabs for filtering */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-            <TabsList className="w-full justify-start overflow-x-auto">
-              <TabsTrigger value="all">All Targets</TabsTrigger>
-              <TabsTrigger value="on_track">On Track</TabsTrigger>
-              <TabsTrigger value="at_risk">At Risk</TabsTrigger>
-              <TabsTrigger value="off_track">Off Track</TabsTrigger>
-              <TabsTrigger value="revenue">Revenue</TabsTrigger>
-              <TabsTrigger value="sales">Sales</TabsTrigger>
-              <TabsTrigger value="customers">Customers</TabsTrigger>
-              <TabsTrigger value="inventory">Inventory</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value={activeTab} className="mt-6">
-              <TargetList 
-                targets={filteredTargets} 
-                onDelete={handleDeleteTarget} 
-                onEdit={handleEditTarget} 
-              />
-              
-              {filteredTargets.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <Target className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-1">No targets found</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {activeTab === 'all' 
-                      ? 'Get started by creating a new target.' 
-                      : `No ${activeTab.replace('_', ' ')} targets found.`}
-                  </p>
-                  <Button onClick={handleAddTarget}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Target
-                  </Button>
+            <div className="space-y-4">
+              {todoTargets.length > 0 ? (
+                todoTargets.map(target => (
+                  <TargetCard 
+                    key={target.id} 
+                    target={target} 
+                    onDelete={handleDeleteTarget} 
+                    onEdit={handleEditTarget} 
+                  />
+                ))
+              ) : (
+                <div className="text-center p-6 border-2 border-dashed rounded-lg">
+                  <p className="text-sm text-muted-foreground">No tasks here</p>
                 </div>
               )}
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
+
+          {/* In Progress Column */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between bg-muted/50 p-3 rounded-lg">
+              <h2 className="font-medium">In Progress</h2>
+              <span className="text-sm text-muted-foreground">
+                {inProgressTargets.length} items
+              </span>
+            </div>
+            <div className="space-y-4">
+              {inProgressTargets.length > 0 ? (
+                inProgressTargets.map(target => (
+                  <TargetCard 
+                    key={target.id} 
+                    target={target} 
+                    onDelete={handleDeleteTarget} 
+                    onEdit={handleEditTarget} 
+                  />
+                ))
+              ) : (
+                <div className="text-center p-6 border-2 border-dashed rounded-lg">
+                  <p className="text-sm text-muted-foreground">No tasks in progress</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Completed Column */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between bg-muted/50 p-3 rounded-lg">
+              <h2 className="font-medium">Completed</h2>
+              <span className="text-sm text-muted-foreground">
+                {completedTargets.length} items
+              </span>
+            </div>
+            <div className="space-y-4">
+              {completedTargets.length > 0 ? (
+                completedTargets.map(target => (
+                  <TargetCard 
+                    key={target.id} 
+                    target={target} 
+                    onDelete={handleDeleteTarget} 
+                    onEdit={handleEditTarget} 
+                  />
+                ))
+              ) : (
+                <div className="text-center p-6 border-2 border-dashed rounded-lg">
+                  <p className="text-sm text-muted-foreground">No completed tasks</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-      
-      {/* Add/Edit Target Dialog */}
-      <AddEditTargetDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        target={editingTarget}
-        onSave={handleSaveTarget}
-      />
+
+      {dialogOpen && (
+        <AddEditTargetDialog 
+          open={dialogOpen} 
+          onOpenChange={setDialogOpen} 
+          target={editingTarget || undefined} 
+          onSave={handleSaveTarget} 
+        />
+      )}
     </div>
   );
-}
+};
+
+export default Targets;

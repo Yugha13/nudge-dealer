@@ -89,36 +89,37 @@ export default function AIInsights() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
+      <header className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-foreground">AI Insights</h1>
-              <div className="hidden sm:block text-sm text-muted-foreground">
-                Automated insights from your data
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <h1 className="text-2xl font-bold text-foreground">AI Insights</h1>
+                <div className="hidden sm:block text-sm text-muted-foreground">
+                  Automated insights from your data
+                </div>
               </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search insights..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 w-64 hidden sm:block"
-                />
-              </div>
+              
+              <div className="flex items-center gap-3">
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Search insights..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 w-64 hidden sm:block"
+                  />
+                </div>
 
-              {/* Settings menu */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Settings className="h-4 w-4" />
-                    <span className="hidden sm:inline">Settings</span>
-                  </Button>
-                </DialogTrigger>
+                {/* Settings menu */}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Settings className="h-4 w-4" />
+                      <span className="hidden sm:inline">Settings</span>
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>AI Insights Settings</DialogTitle>
@@ -147,27 +148,31 @@ export default function AIInsights() {
             </div>
           </div>
 
-          {/* Mobile search */}
-          <div className="mt-4 sm:hidden">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search insights..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+          {/* Search and filters row */}
+          <div className="flex flex-col gap-4">
+            {/* Mobile search */}
+            <div className="sm:hidden">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search insights..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 w-full"
+                />
+              </div>
+            </div>
+
+            {/* Filter tabs */}
+            <div className="-mx-4 px-4 overflow-x-auto pb-1">
+              <FilterTabs
+                currentFilter={filter}
+                onFilterChange={setFilter}
+                counts={counts}
               />
             </div>
           </div>
-
-          {/* Filter tabs */}
-          <div className="mt-4">
-            <FilterTabs
-              currentFilter={filter}
-              onFilterChange={setFilter}
-              counts={counts}
-            />
-          </div>
+        </div>
         </div>
       </header>
 
@@ -185,7 +190,7 @@ export default function AIInsights() {
               />
             ) : (
               <ScrollArea className={isMobile ? 'h-[calc(100vh-280px)]' : 'h-[calc(100vh-200px)]'}>
-                <div className={`pr-4 ${isMobile ? 'space-y-4' : 'grid grid-cols-2 gap-4'}`}>
+                <div className={`pr-4 ${isMobile ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-2 gap-4'}`}>
                   {insights.map((insight) => (
                     <InsightCard
                       key={insight.id}

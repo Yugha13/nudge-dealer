@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Bookmark, ThumbsUp, Calendar, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-import type { Insight } from '../../hooks/use-insights';
+// import { useToast } from '@/hooks/use-toast';
+import type { Insight } from '@/hooks/use-insights';
 import { cn } from '@/lib/utils';
 
 interface InsightCardProps {
@@ -20,6 +20,7 @@ export function InsightCard({
   onToggleSaved,
   onToggleHelpful,
 }: InsightCardProps) {
+  // const { toast } = useToast();
   const [isAnimating, setIsAnimating] = useState<'saved' | 'helpful' | null>(null);
 
   const handleSaveClick = (e: React.MouseEvent) => {
@@ -28,14 +29,28 @@ export function InsightCard({
     setIsAnimating('saved');
     setTimeout(() => setIsAnimating(null), 600);
     
-
+    // toast({
+    //   title: newSavedState ? "Saved!" : "Removed from saved",
+    //   description: newSavedState 
+    //     ? "Added to your saved insights" 
+    //     : "Removed from saved insights",
+    //   duration: 2000,
+    // });
   };
 
   const handleHelpfulClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onToggleHelpful(insight.id);
+    const newHelpfulState = onToggleHelpful(insight.id);
     setIsAnimating('helpful');
     setTimeout(() => setIsAnimating(null), 600);
+
+    // toast({
+    //   title: newHelpfulState ? "Marked as helpful!" : "Removed from helpful",
+    //   description: newHelpfulState
+    //     ? "Added to your helpful insights"
+    //     : "Removed from helpful insights",
+    //   duration: 2000,
+    // });
   };
 
   const formatDate = (dateString: string) => {

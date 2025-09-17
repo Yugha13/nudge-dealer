@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Bookmark, ThumbsUp, Share2, Calendar, Tag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { Insight } from '../../hooks/use-insights';
+import type { Insight } from '@/hooks/use-insights';
 import { cn } from '@/lib/utils';
 
 interface DetailPanelProps {
@@ -20,6 +20,7 @@ export function DetailPanel({
   isMobile = false,
   onClose,
 }: DetailPanelProps) {
+  // const { toast } = useToast();
   const [isAnimating, setIsAnimating] = useState<'saved' | 'helpful' | null>(null);
 
   if (!insight) {
@@ -37,9 +38,17 @@ export function DetailPanel({
   }
 
   const handleSaveClick = () => {
-    onToggleSaved(insight.id);
+    const newSavedState = onToggleSaved(insight.id);
     setIsAnimating('saved');
     setTimeout(() => setIsAnimating(null), 600);
+    
+    // toast({
+    //   title: newSavedState ? "Saved!" : "Removed from saved",
+    //   description: newSavedState 
+    //     ? "Added to your saved insights" 
+    //     : "Removed from saved insights",
+    //   duration: 2000,
+    // });
   };
 
   const handleHelpfulClick = () => {
@@ -47,12 +56,23 @@ export function DetailPanel({
     setIsAnimating('helpful');
     setTimeout(() => setIsAnimating(null), 600);
 
+    // toast({
+    //   title: newHelpfulState ? "Marked as helpful!" : "Removed from helpful",
+    //   description: newHelpfulState
+    //     ? "Added to your helpful insights"
+    //     : "Removed from helpful insights",
+    //   duration: 2000,
+    // });
   };
 
   const handleShare = () => {
     const url = `${window.location.origin}/ai-insights?insight=${insight.id}`;
     navigator.clipboard.writeText(url);
-  
+    // toast({
+    //   title: "Link copied!",
+    //   description: "Insight link has been copied to clipboard",
+    //   duration: 2000,
+    // });
   };
 
   const formatDate = (dateString: string) => {
