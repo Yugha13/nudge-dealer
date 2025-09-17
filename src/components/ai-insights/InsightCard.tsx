@@ -78,8 +78,10 @@ export function InsightCard({
   return (
     <div
       className={cn(
-        'insight-card p-6 cursor-pointer animate-fade-in-up',
-        isSelected && 'selected'
+        'insight-card p-6 cursor-pointer animate-fade-in-up border rounded-lg transition-colors',
+        isSelected 
+          ? 'border-primary shadow-md dark:border-primary/50 dark:shadow-primary/10' 
+          : 'border-border hover:border-primary/50 dark:border-gray-700 dark:hover:border-primary/30'
       )}
       onClick={() => onSelect(insight.id)}
       role="button"
