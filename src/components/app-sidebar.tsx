@@ -8,9 +8,10 @@ import {
   IconUser,
   IconBell,
   IconLogout,
-  IconTarget,
   IconChartArcs,
   IconMoneybag,
+  IconSparkles,
+  IconTargetArrow,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -26,6 +27,7 @@ import {
 import { Button } from "./ui/button"
 import { useTheme } from "./theme-provider"
 import { Moon, Sun, MessageSquare, LayoutDashboard } from "lucide-react"
+import { Link } from "react-router-dom"
 
 
 const data = {
@@ -75,10 +77,15 @@ const data = {
       url: "/profit-analysis",
       icon: IconMoneybag,
     },
+      {
+      title: "AI Insights",
+      url: "/ai-insights",
+      icon: IconSparkles,
+    },
     {
       title: "Target",
-      url: "#",
-      icon: IconTarget,
+      url: "/target",
+      icon: IconTargetArrow,
     },
     {
       title: "Notifications",
@@ -145,9 +152,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </>
           )}
         </Button>
-        <Button variant="default">
-          <MessageSquare className="mr-3 h-4 w-4" />
-          AI Chat
+        <Button variant="default" asChild>
+          <Link to="/ai-chat" className="flex items-center">
+            <MessageSquare className="mr-3 h-4 w-4" />
+            AI Chat
+          </Link>
         </Button>
       </SidebarFooter>
     </Sidebar>

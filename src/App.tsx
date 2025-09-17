@@ -4,6 +4,10 @@ import Upload from "./pages/upload"
 import Pos from "./pages/Pos"
 import OpenPos from "./pages/OpenPos"
 import PlatformComparison from "./pages/Platform"
+import AiChatPage from "./pages/AiChat"
+import Vendors from "./pages/Vendors"
+import AIInsights from "./pages/AIInsights"
+import Target from "./pages/Target"
 
 export default function Page() {
   return (
@@ -17,6 +21,10 @@ export default function Page() {
                 <Route path="/pos" element={<Pos />} />
                 <Route path="/open-pos" element={<OpenPos />} />
                 <Route path="/platform" element={<PlatformComparison />} />
+                <Route path="/ai-chat" element={<AiChatPage />} />
+                <Route path="/vendors" element={<Vendors />} />
+                <Route path="/ai-insights" element={<AIInsights />} />
+                <Route path="/target" element={<Target />} />
               </Routes>
             </div>
           </div>
