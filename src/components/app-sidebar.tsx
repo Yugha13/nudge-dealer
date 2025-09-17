@@ -13,6 +13,7 @@ import {
   IconSparkles,
   IconTargetArrow,
   IconTruck,
+  IconMessage,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -154,7 +155,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           )}
         </Button>
         <Button variant="default" asChild>
-          <Link to="/ai-chat" className="flex items-center">
+          <Link to="/ai-chatbot" className="flex items-center">
             <MessageSquare className="mr-3 h-4 w-4" />
             AI Chat
           </Link>

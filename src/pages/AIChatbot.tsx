@@ -1,0 +1,245 @@
+import React, { useState } from 'react';
+import type { Variants } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, Target, BarChart3, Lightbulb, Zap, Plus, Paperclip, Maximize2, Clock, ZapOff } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
+import { WobbleCards } from '@/components/wobble-card';
+import { AIFeatureCard } from '@/components/ai-feature-card';
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: i * 0.1,
+      duration: 0.5,
+      ease: 'easeOut' as const
+    }
+  }),
+  hover: {
+    y: -5,
+    scale: 1.02,
+    transition: { duration: 0.2 }
+  }
+};
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+type FeatureCardProps = {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  onClick: () => void;
+};
+
+const FeatureCard: React.FC<FeatureCardProps & { index: number }> = ({ icon, title, description, onClick, index }) => (
+  <motion.div
+    variants={cardVariants}
+    initial="hidden"
+    animate="visible"
+    whileHover="hover"
+    custom={index}
+    className="h-full"
+  >
+    <Card 
+      className="group relative overflow-hidden h-full bg-gradient-to-br from-card to-card/80 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all duration-300"
+      onClick={onClick}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="relative z-10 flex flex-col items-center p-6 text-center h-full">
+        <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-border/20 mb-4 group-hover:from-primary/20 group-hover:to-primary/10 transition-colors duration-300">
+          {React.isValidElement<{ className?: string }>(icon) ? (
+            React.cloneElement(icon, { 
+              className: cn('w-6 h-6', icon.props.className) 
+            })
+          ) : (
+            <div className="w-6 h-6 flex items-center justify-center">
+              {icon}
+            </div>
+          )}
+        </div>
+        <CardHeader className="p-0 mb-3">
+          <CardTitle className="text-lg font-semibold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <CardDescription className="text-sm text-muted-foreground/80">
+            {description}
+          </CardDescription>
+        </CardContent>
+      </div>
+    </Card>
+  </motion.div>
+);
+
+const TypingIndicator = () => (
+  <div className="flex space-x-1 items-center">
+    <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+    <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+    <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+  </div>
+);
+
+export default function AIChatbot() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeFeature, setActiveFeature] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const [recentPrompts, setRecentPrompts] = useState([
+    'Show me sales trends for Q3',
+    'Analyze customer feedback',
+    'Generate marketing report'
+  ]);
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+    
+    setIsTyping(true);
+    // Simulate AI processing
+    setTimeout(() => {
+      setIsTyping(false);
+      setRecentPrompts(prev => [inputValue, ...prev].slice(0, 3));
+      setInputValue('');
+    }, 1500);
+  };
+
+  const features = [
+    {
+      id: 'insights',
+      title: 'AI Insights',
+      description: 'Unlock hidden patterns and actionable intelligence from your data.',
+      icon: <Sparkles className="text-primary" />,
+    },
+    {
+      id: 'tasks',
+      title: 'Task Creation',
+      description: 'Automate routine work and simplify complex task flows.',
+      icon: <Plus className="text-blue-500" />,
+    },
+    {
+      id: 'forecasting',
+      title: 'Predictive Forecasting',
+      description: 'Anticipate trends and outcomes with advanced AI predictions.',
+      icon: <BarChart3 className="text-purple-500" />,
+    },
+    {
+      id: 'strategy',
+      title: 'AI for Strategy',
+      description: 'Craft winning strategies with AI-powered recommendations.',
+      icon: <Target className="text-green-500" />,
+    },
+    {
+      id: 'trends',
+      title: 'Trend Discovery',
+      description: 'Spot emerging opportunities before anyone else.',
+      icon: <Lightbulb className="text-yellow-500" />,
+    },
+    {
+      id: 'expand',
+      title: 'Coming Soon',
+      description: 'More exciting features on the way!',
+      icon: <Zap className="text-muted-foreground/60" />,
+    },
+  ];
+
+  const handleFeatureClick = (id: string, title: string) => {
+    if (id === 'insights') {
+      // Navigate to AI Insights chat
+      window.location.href = '/ai-insights';
+    } else {
+      setActiveFeature(title);
+      setIsModalOpen(true);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      <div className="container mx-auto px-4 py-12 max-w-7xl">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-16"
+        >
+          <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+            <Sparkles className="w-4 h-4 mr-2" />
+            AI Assistant
+          </div>
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            What will you make today?
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Leverage AI to assist your work with insights, forecasts, and strategies instantly.
+          </p>
+        </motion.div>
+
+        <motion.div 
+          className="relative mb-16 max-w-3xl mx-auto"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          <form onSubmit={handleSubmit} className="relative">
+            <div className="absolute inset-0.5 bg-gradient-to-r from-primary/30 to-blue-500/30 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group">
+              <div className="absolute inset-0 bg-grid-white/[0.02]" />
+              <div className="relative z-10">
+                <Input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Ask AI to help with anything..."
+                  className="w-full pl-14 pr-36 py-6 text-base bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground placeholder:text-muted-foreground/60"
+                />
+                <Button 
+                  type="submit"
+                  size="lg"
+                  disabled={isTyping || !inputValue.trim()}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
+                >
+                  {isTyping ? <TypingIndicator /> : 'Generate'}
+                </Button>
+              </div>
+            </div>
+          </form>
+          
+          {recentPrompts.length > 0 && (
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              {recentPrompts.map((prompt, i) => (
+                <motion.button
+                  key={i}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setInputValue(prompt)}
+                  className="text-xs px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors flex items-center"
+                >
+                  <Clock className="w-3 h-3 mr-1.5 opacity-70" />
+                  {prompt.length > 30 ? `${prompt.substring(0, 30)}...` : prompt}
+                </motion.button>
+              ))}
+            </div>
+          )}
+        </motion.div>
+          <div className="flex flex-col gap-4 pl-20 pr-20">
+            <AIFeatureCard />
+          </div>
+
+      </div>
+    </div>
+  );
+}
