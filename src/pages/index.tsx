@@ -76,7 +76,7 @@ export default function DealersDashboard() {
             {/* Dealer Profiles */}
             <MetricCard
               title="Unit Fill Rate"
-              value={FillRate().toPrecision(2).toString()+"%"}
+              value={Math.round(FillRate()).toString()+"%"}
               subtitle="7 platforms avg"
               trend={{ value: 12, isPositive: true }}
               icon={<Users className="h-4 w-4" />}
@@ -86,7 +86,7 @@ export default function DealersDashboard() {
             {/* Transactions */}
             <MetricCard
               title="Line fill rate"
-              value={LineFillRate().toPrecision(2).toString()+"%"}
+              value={Math.round(LineFillRate()).toString()+"%"}
               subtitle="7 platforms avg"
               trend={{ value: 8, isPositive: true }}
               icon={<CreditCard className="h-4 w-4" />}
@@ -96,7 +96,7 @@ export default function DealersDashboard() {
             {/* Products */}
             <MetricCard
               title="NZFR"
-              value={NonZeroFillRate().toPrecision(2).toString()+"%"}
+              value={Math.round(NonZeroFillRate()).toString()+"%"}
               subtitle="7 New Products"
               trend={{ value: 5, isPositive: true }}
               icon={<Package className="h-4 w-4" />}

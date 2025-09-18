@@ -78,7 +78,7 @@ const defaultTargets: BusinessTarget[] = [
     title: 'Monthly Revenue Target',
     description: 'Achieve monthly revenue goal',
     category: 'revenue',
-    currentValue: SumOfBilling(),
+    currentValue: Math.round(SumOfBilling()),
     targetValue: 100000,
     progress: 0,
     deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -93,7 +93,7 @@ const defaultTargets: BusinessTarget[] = [
     title: 'Fill Rate Improvement',
     description: 'Improve overall fill rate performance',
     category: 'fillrate',
-    currentValue: FillRate(),
+    currentValue: Math.round(FillRate()),
     targetValue: 85,
     progress: 0,
     deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -108,7 +108,7 @@ const defaultTargets: BusinessTarget[] = [
     title: 'Order Volume Growth',
     description: 'Increase total order count',
     category: 'orders',
-    currentValue: TotalOrders(),
+    currentValue: Math.round(TotalOrders()),
     targetValue: 500,
     progress: 0,
     deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -206,17 +206,17 @@ function TargetCard({ target, onDelete, onEdit }: { target: BusinessTarget; onDe
             <div>
               <div className="text-muted-foreground">Current</div>
               <div className="font-medium">
-                {target.category === 'revenue' ? `₹${target.currentValue.toLocaleString()}` : 
-                 ['fillrate', 'linefillrate', 'nzfr'].includes(target.category) ? `${target.currentValue.toFixed(1)}%` :
-                 target.currentValue.toLocaleString()}
+                {target.category === 'revenue' ? `₹${Math.round(target.currentValue).toLocaleString()}` : 
+                 ['fillrate', 'linefillrate', 'nzfr'].includes(target.category) ? `${Math.round(target.currentValue)}%` :
+                 Math.round(target.currentValue).toLocaleString()}
               </div>
             </div>
             <div className="text-right">
               <div className="text-muted-foreground">Target</div>
               <div className="font-medium">
-                {target.category === 'revenue' ? `₹${target.targetValue.toLocaleString()}` : 
-                 ['fillrate', 'linefillrate', 'nzfr'].includes(target.category) ? `${target.targetValue}%` :
-                 target.targetValue.toLocaleString()}
+                {target.category === 'revenue' ? `₹${Math.round(target.targetValue).toLocaleString()}` : 
+                 ['fillrate', 'linefillrate', 'nzfr'].includes(target.category) ? `${Math.round(target.targetValue)}%` :
+                 Math.round(target.targetValue).toLocaleString()}
               </div>
             </div>
           </div>
@@ -251,8 +251,8 @@ function AddEditTargetDialog({
       title: '',
       description: '',
       category: 'revenue',
-      currentValue: 0,
-      targetValue: 0,
+      currentValue: Math.round(SumOfBilling()),
+      targetValue: Math.round(SumOfBilling()),
       progress: 0,
       status: 'todo',
       deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -263,13 +263,19 @@ function AddEditTargetDialog({
 
   const handleCategoryChange = (category: RealTimeCategory) => {
     const isRealTime = category !== 'custom';
-    const currentValue = isRealTime ? getRealTimeValue(category) : formData.currentValue;
+    const currentValue = Math.round(isRealTime ? getRealTimeValue(category) : formData.currentValue);
+    
+    // Set default target value based on category
+    const isPercentage = ['fillrate', 'linefillrate', 'nzfr'].includes(category);
+    const defaultTargetValue = isPercentage ? 100 : (category === 'revenue' ? Math.round(SumOfBilling()) : Math.round(formData.targetValue || 0));
+    
     setFormData(prev => ({
       ...prev,
       category,
       currentValue,
       isRealTime,
-      progress: prev.targetValue > 0 ? Math.min(100, Math.round((currentValue / prev.targetValue) * 100)) : 0
+      targetValue: defaultTargetValue,
+      progress: defaultTargetValue > 0 ? Math.min(100, Math.round((currentValue / defaultTargetValue) * 100)) : 0
     }));
   };
 
@@ -281,7 +287,9 @@ function AddEditTargetDialog({
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const numValue = parseFloat(value) || 0;
+    // Always round to integer - no floats allowed
+    let numValue = Math.round(parseFloat(value)) || 0;
+    
     setFormData(prev => {
       const currentValue = name === 'currentValue' ? numValue : prev.currentValue;
       const targetValue = name === 'targetValue' ? numValue : prev.targetValue;
@@ -377,8 +385,8 @@ function AddEditTargetDialog({
                 value={formData.targetValue}
                 onChange={handleNumberChange}
                 className="col-span-3"
-                min={0}
-                step={1}
+                min="0"
+                step="1"
                 required
               />
             </div>
@@ -460,19 +468,19 @@ const Targets = () => {
         let currentValue: number;
         switch (target.category) {
           case 'revenue':
-            currentValue = SumOfBilling();
+            currentValue = Math.round(SumOfBilling());
             break;
           case 'fillrate':
-            currentValue = FillRate();
+            currentValue = Math.round(FillRate());
             break;
           case 'linefillrate':
-            currentValue = LineFillRate();
+            currentValue = Math.round(LineFillRate());
             break;
           case 'nzfr':
-            currentValue = NonZeroFillRate();
+            currentValue = Math.round(NonZeroFillRate());
             break;
           case 'orders':
-            currentValue = TotalOrders();
+            currentValue = Math.round(TotalOrders());
             break;
           default:
             currentValue = target.currentValue;

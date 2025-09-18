@@ -12,17 +12,6 @@
       "helpful": false
     },
     {
-      "id": "ins-1002", 
-      "title": "Inventory Alert: Organic produce shortage predicted",
-      "summary": "Supply chain disruption likely to impact organic produce availability in next 14 days across 12 key SKUs.",
-      "detail": "Advanced supply chain modeling indicates potential shortage in organic produce segment within the next two weeks. This prediction is based on weather pattern analysis, supplier capacity data, and historical shortage correlations.\n\n**Key Evidence:**\n• Weather disruptions affecting 3 major organic suppliers\n• Transportation delays reported on key shipping routes\n• Current inventory levels 23% below optimal threshold\n• Competitor stockout reports in similar geographic areas\n\n**Recommended Actions:**\n• Secure alternative organic suppliers immediately\n• Increase safety stock for affected SKUs by 35%\n• Implement dynamic pricing to manage demand\n• Communicate proactively with customers about potential availability",
-      "date": "2025-09-15T14:30:00Z",
-      "tags": ["Action", "Supply Chain"],
-      "category": "Action",
-      "saved": false,
-      "helpful": true
-    },
-    {
       "id": "ins-1003",
       "title": "Customer Behavior: Shift toward premium dairy products",
       "summary": "35% increase in premium dairy purchases, driven by health-conscious consumers in urban demographics.",
@@ -43,17 +32,6 @@
       "category": "Forecast",
       "saved": false,
       "helpful": false
-    },
-    {
-      "id": "ins-1005",
-      "title": "Price Optimization: Electronics margin improvement opportunity",
-      "summary": "AI identifies 12% margin improvement potential across consumer electronics through strategic repricing.",
-      "detail": "Price optimization analysis has identified significant margin improvement opportunities in the consumer electronics category through strategic repricing of 47 key SKUs.\n\n**Key Evidence:**\n• Competitor price analysis shows room for 8-15% price increases\n• Demand elasticity modeling suggests minimal volume impact\n• Customer willingness-to-pay data supports higher price points\n• Current margins 12% below optimal levels based on market dynamics\n\n**Recommended Actions:**\n• Implement gradual price increases over 4-week period\n• Monitor competitor response and adjust strategy accordingly\n• Focus initial increases on higher-end electronics with lower elasticity\n• Track customer sentiment and purchase behavior closely",
-      "date": "2025-09-12T11:20:00Z",
-      "tags": ["Action", "Pricing"],
-      "category": "Action",
-      "saved": false,
-      "helpful": true
     },
     {
       "id": "ins-1006",
@@ -98,17 +76,6 @@
       "category": "Action",
       "saved": false,
       "helpful": false
-    },
-    {
-      "id": "ins-1010",
-      "title": "Sustainability Impact: Packaging waste reduction success",
-      "summary": "Environmental initiative shows 31% packaging waste reduction achieved through sustainable packaging transition.",
-      "detail": "Environmental impact analysis of our sustainable packaging initiative demonstrates significant waste reduction achievements while maintaining product quality and customer satisfaction.\n\n**Key Evidence:**\n• 31% reduction in total packaging waste across participating product lines\n• Customer satisfaction scores maintained at 4.2/5.0 for repackaged items\n• Cost savings of $127,000 annually from reduced packaging materials\n• Positive brand sentiment increase of 18% related to sustainability efforts\n\n**Recommended Actions:**\n• Expand sustainable packaging program to additional product categories\n• Communicate sustainability achievements in marketing materials\n• Partner with suppliers to develop even more eco-friendly alternatives\n• Consider sustainability-focused product labeling to drive conscious purchases",
-      "date": "2025-09-07T09:15:00Z",
-      "tags": ["Forecast", "Sustainability"],
-      "category": "Forecast",
-      "saved": true,
-      "helpful": true
     }
   ]
 }

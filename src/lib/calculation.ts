@@ -1,6 +1,5 @@
 // Import the store type for TypeScript
-import type { PO } from '@/store/useDataStore';
-
+import { useDataStore, type PO } from '@/store/useDataStore';
 // Create a function to get the store without hooks
 const getDataStore = () => {
   // This is a workaround to use the store outside of React components
@@ -88,3 +87,50 @@ export const getAllMetrics = () => ({
   totalOrders: TotalOrders(),
   unitReceiptFillRate: UnitReceiptFillRate()
 });
+
+export const Mapping = () => {
+  const {pos, landingRates, addUniversalPo, clearPO } = useDataStore();
+  
+  // Create a map for quick lookup of landing rates by skuid
+  const landingRateMap = new Map(landingRates.map(rate => [rate.skuId, rate]));
+  
+  // Map pos items to their corresponding landing rates using skucode -> skuid mapping
+  const mappedData = pos.map(po => {
+    const landingRateData = landingRateMap.get(po.skuCode);
+    return {
+      poNumber: po.poNumber,
+      vendor: po.vendor,
+      orderedQty: po.orderedQty,
+      receivedQty: po.receivedQty,
+      poAmount: po.poAmount,
+      skuCode: landingRateData?.skuId,
+      units: ((landingRateData?.cases || 1)),
+      cases: (po.orderedQty / (landingRateData?.cases || 1)),
+      grncase: (po.receivedQty / (landingRateData?.cases || 1)),
+      mrp: landingRateData?.mrp || 0,
+      landingRate: landingRateData?.landingRate || 0,
+      skuDescription: po.skuDescription,
+      poLineValueWithTax: po.poLineValueWithTax,
+      grnBillValue: po.receivedQty * (landingRateData?.landingRate || 0),
+      status: po.status
+    };
+  });
+  
+  console.log("here you go: ", mappedData);
+  clearPO();
+  addUniversalPo(mappedData)
+  return mappedData
+};
+
+// sum of PO billvalue = status !expired  | sum of poLineValueWithTax
+// sum of PO case = status !expired | sum of orderQty cases
+
+// status completed sum of polinewithtax = sum of closedPO billvalue
+// status completed | cases = sum of closedPO cases
+
+// --grn-- -> reviced qty > 0 && status completed
+// sum of grn bill value => 
+// sum of grn cases
+
+
+// cosolidation //
