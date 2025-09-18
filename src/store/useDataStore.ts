@@ -1,12 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type PO = {
+export type PO = {
   poNumber: string;
   vendor: string;
   orderedQty: number;
   receivedQty: number;
   poAmount: number;
+  skuCode: string;
+  skuDescription: string;
+  poLineValueWithTax: number;
 };
 
 type Store = {

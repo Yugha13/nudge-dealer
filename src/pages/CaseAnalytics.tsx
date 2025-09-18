@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar, Filter, Search, TrendingUp, TrendingDown } from 'lucide-react';
+import { useDataStore } from '@/store/useDataStore';
 import {
   BarChart,
   Bar,
@@ -21,16 +22,6 @@ import {
 } from 'recharts';
 
 // Mock data - replace with real data from your API
-const kpiData = [
-  { id: 1, title: 'Sum of PO Cases', value: '1,842', change: '+12.5%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
-  { id: 2, title: 'Closed PO Cases', value: '1,245', change: '+8.2%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
-  { id: 3, title: 'GRN Cases', value: '843', change: '+5.7%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
-  { id: 4, title: 'Open PO Cases', value: '443', change: '+5.7%', trend: 'down', icon: <TrendingDown className="h-5 w-5" /> },
-  { id: 5, title: 'PO Billing Value', value: '$1.2M', change: '+15.3%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
-  { id: 6, title: 'Closed PO Value', value: '$845K', change: '+9.8%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
-  { id: 7, title: 'GRN Billing Values', value: '$612K', change: '+7.1%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
-  { id: 8, title: 'Open PO Value', value: '$397K', change: '-3.2%', trend: 'down', icon: <TrendingDown className="h-5 w-5" /> },
-];
 
 const trendData = [
   { name: 'Jan', cases: 1200, closed: 800, grn: 400 },
@@ -63,6 +54,39 @@ const vendorData = [
 ];
 
 const CaseAnalytics = () => {
+  const { pos, openpos } = useDataStore();
+  
+  // Calculate real metrics from store data
+  const totalPOBillingValue = [...pos, ...openpos].reduce((sum, po) => {
+    const value = po.poLineValueWithTax || 0;
+    return sum + value;
+  }, 0);
+  const totalPOCases = pos.length + openpos.length;
+  const closedPOCases = pos.length;
+  const openPOCases = openpos.length;
+  const closedPOValue = pos.reduce((sum, po) => sum + (po.poLineValueWithTax || 0), 0);
+  const openPOValue = openpos.reduce((sum, po) => sum + (po.poLineValueWithTax || 0), 0);
+  
+  // Format currency in rupees
+  const formatCurrency = (value: number) => {
+    if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)}Cr`;
+    if (value >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
+    if (value >= 1000) return `₹${(value / 1000).toFixed(1)}K`;
+    return `₹${value.toFixed(0)}`;
+  };
+  
+  // Update KPI data with real values
+  const kpiData = [
+    { id: 1, title: 'Sum of PO Cases', value: totalPOCases.toString(), change: '+12.5%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
+    { id: 2, title: 'Closed PO Cases', value: closedPOCases.toString(), change: '+8.2%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
+    { id: 3, title: 'GRN Cases', value: '843', change: '+5.7%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
+    { id: 4, title: 'Open PO Cases', value: openPOCases.toString(), change: '+5.7%', trend: 'down', icon: <TrendingDown className="h-5 w-5" /> },
+    { id: 5, title: 'PO Billing Value', value: formatCurrency(totalPOBillingValue), change: '+15.3%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
+    { id: 6, title: 'Closed PO Value', value: formatCurrency(closedPOValue), change: '+9.8%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
+    { id: 7, title: 'GRN Billing Values', value: '₹612K', change: '+7.1%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
+    { id: 8, title: 'Open PO Value', value: formatCurrency(openPOValue), change: '-3.2%', trend: 'down', icon: <TrendingDown className="h-5 w-5" /> },
+  ];
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex flex-col space-y-2">
@@ -214,7 +238,7 @@ const CaseAnalytics = () => {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="value" fill="#8884d8" name="Value ($)" />
+                      <Bar dataKey="value" fill="#8884d8" name="Value (₹)" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -235,7 +259,7 @@ const CaseAnalytics = () => {
                             {vendor.closed}/{vendor.totalCases} closed
                           </div>
                           <div className="text-sm font-medium">
-                            ${(vendor.billing / 1000).toFixed(0)}K
+                            ₹{(vendor.billing / 1000).toFixed(0)}K
                           </div>
                         </div>
                       </div>
@@ -276,8 +300,8 @@ const CaseAnalytics = () => {
                     <td className="p-4 text-right">{vendor.open}</td>
                     <td className="p-4 text-right">{vendor.closed}</td>
                     <td className="p-4 text-right">{vendor.grn}</td>
-                    <td className="p-4 text-right">${(vendor.billing / 1000).toFixed(1)}K</td>
-                    <td className="p-4 text-right">${(vendor.grnBilling / 1000).toFixed(1)}K</td>
+                    <td className="p-4 text-right">₹{(vendor.billing / 1000).toFixed(1)}K</td>
+                    <td className="p-4 text-right">₹{(vendor.grnBilling / 1000).toFixed(1)}K</td>
                     <td className="p-4 text-right">
                       <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                         Active

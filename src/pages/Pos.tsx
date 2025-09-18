@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import * as React from "react";
 import { useDataStore } from "@/store/useDataStore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -6,7 +7,33 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { IconFileSpreadsheet, IconSearch, IconFilter, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { IconFileSpreadsheet, IconSearch, IconFilter, IconChevronLeft, IconChevronRight, IconChevronDown, IconChevronUp } from "@tabler/icons-react";
+
+// Add type for PO items
+interface PoItem {
+  poNumber: string;
+  vendor: string;
+  orderedQty: number;
+  receivedQty: number;
+  poAmount: number;
+  skuCode: string;
+  skuDescription: string;
+  // For backward compatibility
+  itemName?: string;
+  itemCode?: string;
+}
+
+// Add type for PO group
+interface PoGroup {
+  poNumber: string;
+  vendor: string;
+  items: PoItem[];
+  totalOrderedQty: number;
+  totalReceivedQty: number;
+  totalAmount: number;
+  isComplete: boolean;
+  fillRate: string;
+}
 
 const Pos = () => {
   const { pos } = useDataStore();
@@ -14,6 +41,7 @@ const Pos = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [vendorFilter, setVendorFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const itemsPerPage = 15;
 
   // Get unique vendors for filter dropdown
@@ -22,32 +50,77 @@ const Pos = () => {
     return Array.from(vendorSet).sort();
   }, [pos]);
 
-  // Filter and paginate data
+  // Group PO items by PO number
+  const groupedPos = useMemo(() => {
+    const groups: Record<string, any[]> = {};
+    
+    pos.forEach(po => {
+      if (!groups[po.poNumber]) {
+        groups[po.poNumber] = [];
+      }
+      groups[po.poNumber].push(po);
+    });
+    
+    return groups;
+  }, [pos]);
+
+  // Create PO groups with aggregated data
+  const poGroups = useMemo(() => {
+    return Object.entries(groupedPos).map(([poNumber, items]) => {
+      const totalOrderedQty = items.reduce((sum, item) => sum + item.orderedQty, 0);
+      const totalReceivedQty = items.reduce((sum, item) => sum + item.receivedQty, 0);
+      const totalAmount = items.reduce((sum, item) => sum + (item.poAmount || 0), 0);
+      const isComplete = items.every(item => item.receivedQty === item.orderedQty);
+      
+      return {
+        poNumber,
+        vendor: items[0].vendor,
+        items,
+        isExpanded: false,
+        totalOrderedQty,
+        totalReceivedQty,
+        totalAmount,
+        isComplete
+      };
+    });
+  }, [groupedPos]);
+
+  // Filter PO groups
   const filteredPos = useMemo(() => {
-    return pos.filter(po => {
+    return poGroups.filter(group => {
       const matchesSearch = 
-        po.poNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        po.vendor.toLowerCase().includes(searchTerm.toLowerCase());
+        group.poNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        group.vendor.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = 
         statusFilter === "all" || 
-        (statusFilter === "complete" && po.receivedQty === po.orderedQty) ||
-        (statusFilter === "pending" && po.receivedQty !== po.orderedQty);
+        (statusFilter === "complete" && group.isComplete) ||
+        (statusFilter === "pending" && !group.isComplete);
       
       const matchesVendor = 
-        vendorFilter === "all" || po.vendor === vendorFilter;
+        vendorFilter === "all" || group.vendor === vendorFilter;
       
       return matchesSearch && matchesStatus && matchesVendor;
     });
-  }, [pos, searchTerm, statusFilter, vendorFilter]);
+  }, [poGroups, searchTerm, statusFilter, vendorFilter]);
 
-  // Calculate fill rate for each PO
-  const posWithMetrics = useMemo(() => {
-    return filteredPos.map(po => {
-      const fillRate = po.orderedQty > 0 ? (po.receivedQty * 100) / po.orderedQty : 0;
+  // Calculate fill rate for each PO group
+  const posWithMetrics = useMemo<PoGroup[]>(() => {
+    return filteredPos.map(group => {
+      const fillRate = group.totalOrderedQty > 0 ? 
+        (group.totalReceivedQty * 100) / group.totalOrderedQty : 0;
+      
       return {
-        ...po,
-        fillRate: fillRate.toFixed(2) + '%'
+        ...group,
+        fillRate: fillRate.toFixed(2) + '%',
+        // Ensure all required PoGroup properties are included
+        poNumber: group.poNumber,
+        vendor: group.vendor,
+        items: group.items,
+        totalOrderedQty: group.totalOrderedQty,
+        totalReceivedQty: group.totalReceivedQty,
+        totalAmount: group.totalAmount,
+        isComplete: group.isComplete
       };
     });
   }, [filteredPos]);
@@ -61,6 +134,14 @@ const Pos = () => {
   useMemo(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, vendorFilter]);
+
+  // Toggle PO group expansion
+  const toggleGroup = (poNumber: string) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [poNumber]: !prev[poNumber]
+    }));
+  };
 
   // Handle page change
   const handlePageChange = (newPage: number) => {
@@ -167,26 +248,70 @@ const Pos = () => {
                       <TableHead>Vendor</TableHead>
                       <TableHead className="text-right">Ordered Qty</TableHead>
                       <TableHead className="text-right">Received Qty</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="text-right">Total Amount</TableHead>
                       <TableHead className="text-right">Fill Rate</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedPos.map((po, index) => (
-                      <TableRow key={startIndex + index}>
-                        <TableCell className="font-medium">{po.poNumber}</TableCell>
-                        <TableCell>{po.vendor}</TableCell>
-                        <TableCell className="text-right">{po.orderedQty}</TableCell>
-                        <TableCell className="text-right">{po.receivedQty}</TableCell>
-                        <TableCell className="text-right">${po.poAmount.toFixed(2)}</TableCell>
-                        <TableCell className="text-right">{po.fillRate}</TableCell>
-                        <TableCell>
-                          <Badge variant={po.receivedQty === po.orderedQty ? "default" : "secondary"}>
-                            {po.receivedQty === po.orderedQty ? "Complete" : "Pending"}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
+                    {paginatedPos.map((group) => (
+                      <React.Fragment key={group.poNumber}>
+                        <TableRow 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => toggleGroup(group.poNumber)}
+                        >
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              {expandedGroups[group.poNumber] ? 
+                                <IconChevronUp className="h-4 w-4" /> : 
+                                <IconChevronDown className="h-4 w-4" />
+                              }
+                              {group.poNumber}
+                            </div>
+                          </TableCell>
+                          <TableCell>{group.vendor}</TableCell>
+                          <TableCell className="text-right">{group.totalOrderedQty}</TableCell>
+                          <TableCell className="text-right">{group.totalReceivedQty}</TableCell>
+                          <TableCell className="text-right">₹{new Intl.NumberFormat('en-IN').format(parseFloat(group.totalAmount.toFixed(2)))}</TableCell>
+                          <TableCell className="text-right">{group.fillRate}</TableCell>
+                          <TableCell>
+                            <Badge variant={group.isComplete ? "default" : "secondary"}>
+                              {group.isComplete ? "Complete" : "Pending"}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                        
+                        {expandedGroups[group.poNumber] && group.items.map((item, itemIndex) => (
+                          <TableRow key={`${group.poNumber}-${itemIndex}`} className="bg-muted/10">
+                            <TableCell colSpan={2} className="pl-12">
+                              <div className="flex flex-col">
+                                <span className="font-medium">
+                                  {item.skuCode?.toString() || item.itemCode?.toString() || 'N/A'}
+                                </span>
+                                <span className="text-muted-foreground text-sm">
+                                  {item.skuDescription?.toString() || item.itemName?.toString() || `Item ${itemIndex + 1}`}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">{item.orderedQty}</TableCell>
+                            <TableCell className="text-right">{item.receivedQty}</TableCell>
+                            <TableCell className="text-right">
+                              ₹{new Intl.NumberFormat('en-IN').format(parseFloat((item.poAmount || 0).toFixed(2)))}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {item.orderedQty > 0 ? ((item.receivedQty / item.orderedQty) * 100).toFixed(2) + '%' : '0%'}
+                            </TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={item.receivedQty === item.orderedQty ? "default" : "secondary"}
+                                className="bg-opacity-50"
+                              >
+                                {item.receivedQty === item.orderedQty ? "Complete" : "Pending"}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </React.Fragment>
                     ))}
                   </TableBody>
                 </Table>

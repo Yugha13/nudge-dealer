@@ -13,6 +13,9 @@ type PreviewData = {
   "OrderedQty": string;
   "ReceivedQty": string;
   "PoAmount": string;
+  "SkuCode": string;
+  "SkuDescription": string;
+  "PoLineValueWithTax": string;
 };
 
 type UploadStatus = {
@@ -26,6 +29,9 @@ type ParsedPO = {
   orderedQty: number;
   receivedQty: number;
   poAmount: number;
+  skuCode: string;
+  skuDescription: string;
+  poLineValueWithTax: number;
 };
 
 type FileRow = {
@@ -130,12 +136,31 @@ const Upload = () => {
               h === 'poamount' || h.includes('amount') || h.includes('value')
             );
             
+            const skuCodeIndex = normalizedHeaders.findIndex(h => 
+              h === 'skucode' || h === 'sku_code' || h === 'sku-code' || 
+              (h.includes('sku') && h.includes('code')) || h === 'productcode'
+            );
+            
+            const skuDescriptionIndex = normalizedHeaders.findIndex(h => 
+              h === 'skudescription' || h === 'sku_description' || h === 'sku-description' ||
+              (h.includes('sku') && h.includes('description')) || h === 'productdescription' ||
+              h === 'description'
+            );
+            
+            const poLineValueWithTaxIndex = normalizedHeaders.findIndex(h => 
+              h === 'polinevaluewithtax' || h === 'po_line_value_with_tax' || 
+              h === 'polinevaluewithtax' || h.includes('linevalue') && h.includes('tax')
+            );
+            
             console.log('Header indices:', {
               poNumberIndex,
               vendorNameIndex,
               orderedQtyIndex,
               receivedQtyIndex,
-              poAmountIndex
+              poAmountIndex,
+              skuCodeIndex,
+              skuDescriptionIndex,
+              poLineValueWithTaxIndex
             }); // Debug log
             
             // Parse CSV rows
@@ -151,6 +176,9 @@ const Upload = () => {
                   "OrderedQty": orderedQtyIndex !== -1 && values[orderedQtyIndex] ? values[orderedQtyIndex].trim() : '',
                   "ReceivedQty": receivedQtyIndex !== -1 && values[receivedQtyIndex] ? values[receivedQtyIndex].trim() : '',
                   "PoAmount": poAmountIndex !== -1 && values[poAmountIndex] ? values[poAmountIndex].trim() : '',
+                  "SkuCode": skuCodeIndex !== -1 && values[skuCodeIndex] ? values[skuCodeIndex].trim() : '',
+                  "SkuDescription": skuDescriptionIndex !== -1 && values[skuDescriptionIndex] ? values[skuDescriptionIndex].trim() : '',
+                  "PoLineValueWithTax": poLineValueWithTaxIndex !== -1 && values[poLineValueWithTaxIndex] ? values[poLineValueWithTaxIndex].trim() : '',
                 };
                 
                 console.log('Mapped object:', mappedObj); // Debug log
@@ -214,12 +242,34 @@ const Upload = () => {
                 normalizedKeys[index].includes('value')
               ) || keys[4];
               
+              const skuCodeKey = keys.find((_, index) => 
+                normalizedKeys[index] === 'skucode' || normalizedKeys[index] === 'sku_code' || 
+                normalizedKeys[index] === 'sku-code' || normalizedKeys[index] === 'productcode' ||
+                (normalizedKeys[index].includes('sku') && normalizedKeys[index].includes('code'))
+              );
+              
+              const skuDescriptionKey = keys.find((_, index) => 
+                normalizedKeys[index] === 'skudescription' || normalizedKeys[index] === 'sku_description' ||
+                normalizedKeys[index] === 'sku-description' || normalizedKeys[index] === 'productdescription' ||
+                normalizedKeys[index] === 'description' ||
+                (normalizedKeys[index].includes('sku') && normalizedKeys[index].includes('description'))
+              );
+              
+              const poLineValueWithTaxKey = keys.find((_, index) => 
+                normalizedKeys[index] === 'polinevaluewithtax' || normalizedKeys[index] === 'po_line_value_with_tax' ||
+                normalizedKeys[index] === 'polinevaluewithtax' || 
+                (normalizedKeys[index].includes('linevalue') && normalizedKeys[index].includes('tax'))
+              );
+              
               const result = {
                 "PO Number": String(row[poNumberKey] || ''),
                 "VendorName": String(row[vendorNameKey] || ''),
                 "OrderedQty": String(row[orderedQtyKey] || ''),
                 "ReceivedQty": String(row[receivedQtyKey] || ''),
                 "PoAmount": String(row[poAmountKey] || ''),
+                "SkuCode": String(row[skuCodeKey] || ''),
+                "SkuDescription": String(row[skuDescriptionKey] || ''),
+                "PoLineValueWithTax": String(row[poLineValueWithTaxKey] || ''),
               };
               
               console.log('Mapped Excel row:', result); // Debug log
@@ -318,7 +368,10 @@ const Upload = () => {
           vendor: row["VendorName"]?.toString().trim() || '',
           orderedQty: parseInt(row["OrderedQty"]?.toString() || '0'),
           receivedQty: parseInt(row["ReceivedQty"]?.toString() || '0'),
-          poAmount: parseFloat(row["PoAmount"]?.toString() || '0')
+          poAmount: parseFloat(row["PoAmount"]?.toString() || '0'),
+          skuCode: row["SkuCode"]?.toString().trim() || '',
+          skuDescription: row["SkuDescription"]?.toString().trim() || '',
+          poLineValueWithTax: parseFloat(row["PoLineValueWithTax"]?.toString() || '0'),
         };
       }).filter(po => {
         const isValid = po.poNumber && po.vendor && po.poNumber.trim() !== '' && po.vendor.trim() !== '';
@@ -473,7 +526,7 @@ const Upload = () => {
         <div className="flex flex-wrap gap-2 ml-auto">
           <Button 
             onClick={() => {
-              const csvContent = `PO Number,VendorName,OrderedQty,ReceivedQty,PoAmount\nPO-001,Sample Vendor A,100,95,1500.00\nPO-002,Sample Vendor B,200,200,3200.00\nPO-003,Sample Vendor C,50,45,750.50`;
+              const csvContent = `PO Number,VendorName,OrderedQty,ReceivedQty,PoAmount,SkuCode,SkuDescription\nPO-001,Sample Vendor A,100,95,1500.00,SKU-001,Sample Product A\nPO-002,Sample Vendor B,200,200,3200.00,SKU-002,Sample Product B\nPO-003,Sample Vendor C,50,45,750.50,SKU-003,Sample Product C`;
               const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
               const link = document.createElement('a');
               const url = URL.createObjectURL(blob);
@@ -491,7 +544,7 @@ const Upload = () => {
           </Button>
           <Button 
             onClick={() => {
-              const csvContent = `PO Number,VendorName,OrderedQty,ReceivedQty,PoAmount\nOPEN-001,Open Vendor A,150,120,2200.00\nOPEN-002,Open Vendor B,300,250,4800.00\nOPEN-003,Open Vendor C,75,60,1100.25`;
+              const csvContent = `PO Number,VendorName,OrderedQty,ReceivedQty,PoAmount,SkuCode,SkuDescription\nOPEN-001,Open Vendor A,150,120,2200.00,OPEN-SKU-001,Open Product A\nOPEN-002,Open Vendor B,300,250,4800.00,OPEN-SKU-002,Open Product B\nOPEN-003,Open Vendor C,75,60,1100.25,OPEN-SKU-003,Open Product C`;
               const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
               const link = document.createElement('a');
               const url = URL.createObjectURL(blob);
@@ -519,7 +572,10 @@ const Upload = () => {
               vendor: "Test Vendor",
               orderedQty: 100,
               receivedQty: 95,
-              poAmount: 1500.00
+              poAmount: 1500.00,
+              skuCode: "TEST-SKU-001",
+              skuDescription: "Test Product",
+              poLineValueWithTax: 1650.00
             });
           }}
         >
@@ -532,7 +588,10 @@ const Upload = () => {
               vendor: "Open Vendor",
               orderedQty: 200,
               receivedQty: 150,
-              poAmount: 3200.00
+              poAmount: 3200.00,
+              skuCode: "574001",
+              skuDescription: "Open Product",
+              poLineValueWithTax: 3520.00
             });
           }}
         >
@@ -573,7 +632,7 @@ const Upload = () => {
         <Card>
           <CardHeader>
             <CardTitle>Upload File POs</CardTitle>
-            <CardDescription>Upload files with columns: PO Number, VendorName, OrderedQty, ReceivedQty, PoAmount</CardDescription>
+            <CardDescription>Upload files with columns: PO Number, VendorName, OrderedQty, ReceivedQty, PoAmount, SkuCode, SkuDescription</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div 
@@ -629,6 +688,8 @@ const Upload = () => {
                             <TableHead>Ordered</TableHead>
                             <TableHead>Received</TableHead>
                             <TableHead>Amount</TableHead>
+                            <TableHead>SKU Code</TableHead>
+                            <TableHead>SKU Description</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -639,6 +700,8 @@ const Upload = () => {
                               <TableCell>{row["OrderedQty"]}</TableCell>
                               <TableCell>{row["ReceivedQty"]}</TableCell>
                               <TableCell>{row["PoAmount"]}</TableCell>
+                              <TableCell>{row["SkuCode"]}</TableCell>
+                              <TableCell>{row["SkuDescription"]}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -684,7 +747,7 @@ const Upload = () => {
         <Card>
           <CardHeader>
             <CardTitle>Upload File Open POs</CardTitle>
-            <CardDescription>Upload files with columns: PO Number, VendorName, OrderedQty, ReceivedQty, PoAmount</CardDescription>
+            <CardDescription>Upload files with columns: PO Number, VendorName, OrderedQty, ReceivedQty, PoAmount, SkuCode, SkuDescription</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div 
@@ -740,6 +803,8 @@ const Upload = () => {
                             <TableHead>Ordered</TableHead>
                             <TableHead>Received</TableHead>
                             <TableHead>Amount</TableHead>
+                            <TableHead>SKU Code</TableHead>
+                            <TableHead>SKU Description</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -750,6 +815,8 @@ const Upload = () => {
                               <TableCell>{row["OrderedQty"]}</TableCell>
                               <TableCell>{row["ReceivedQty"]}</TableCell>
                               <TableCell>{row["PoAmount"]}</TableCell>
+                              <TableCell>{row["SkuCode"]}</TableCell>
+                              <TableCell>{row["SkuDescription"]}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -813,6 +880,8 @@ const Upload = () => {
                           <TableHead>Ordered</TableHead>
                           <TableHead>Received</TableHead>
                           <TableHead>Amount</TableHead>
+                          <TableHead>SKU Code</TableHead>
+                          <TableHead>SKU Description</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -822,7 +891,9 @@ const Upload = () => {
                             <TableCell>{po.vendor}</TableCell>
                             <TableCell>{po.orderedQty}</TableCell>
                             <TableCell>{po.receivedQty}</TableCell>
-                            <TableCell>${po.poAmount.toFixed(2)}</TableCell>
+                            <TableCell>₹{po.poAmount.toFixed(2)}</TableCell>
+                            <TableCell>{po.skuCode}</TableCell>
+                            <TableCell>{po.skuDescription}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -843,6 +914,8 @@ const Upload = () => {
                           <TableHead>Ordered</TableHead>
                           <TableHead>Received</TableHead>
                           <TableHead>Amount</TableHead>
+                          <TableHead>SKU Code</TableHead>
+                          <TableHead>SKU Description</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -852,7 +925,9 @@ const Upload = () => {
                             <TableCell>{po.vendor}</TableCell>
                             <TableCell>{po.orderedQty}</TableCell>
                             <TableCell>{po.receivedQty}</TableCell>
-                            <TableCell>${po.poAmount.toFixed(2)}</TableCell>
+                            <TableCell>₹{po.poAmount.toFixed(2)}</TableCell>
+                            <TableCell>{po.skuCode}</TableCell>
+                            <TableCell>{po.skuDescription}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>

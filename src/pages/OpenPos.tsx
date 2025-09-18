@@ -1,12 +1,38 @@
 import { useState, useMemo } from "react";
+import * as React from "react";
 import { useDataStore } from "@/store/useDataStore";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { IconFileSpreadsheet, IconSearch, IconFilter, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { IconSearch, IconFilter, IconChevronDown, IconChevronUp, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+
+// Add type for PO items
+interface PoItem {
+  poNumber: string;
+  vendor: string;
+  orderedQty: number;
+  receivedQty: number;
+  poAmount: number;
+  skuCode: string;
+  skuDescription: string;
+  // For backward compatibility
+  itemName?: string;
+  itemCode?: string;
+}
+
+// Add type for PO group
+interface PoGroup {
+  poNumber: string;
+  vendor: string;
+  items: PoItem[];
+  totalOrderedQty: number;
+  totalReceivedQty: number;
+  totalAmount: number;
+  isComplete: boolean;
+  fillRate: string;
+}
 
 const OpenPos = () => {
   const { openpos } = useDataStore();
@@ -14,6 +40,7 @@ const OpenPos = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [vendorFilter, setVendorFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const itemsPerPage = 15;
 
   // Get unique vendors for filter dropdown
@@ -22,32 +49,118 @@ const OpenPos = () => {
     return Array.from(vendorSet).sort();
   }, [openpos]);
 
-  // Filter and paginate data
+  // Calculate summary metrics
+  const summaryMetrics = useMemo(() => {
+    // Count unique PO numbers
+    const uniquePoNumbers = new Set(openpos.map(po => po.poNumber));
+    
+    // Calculate total PO value
+    const totalValue = openpos.reduce((sum, po) => sum + (po.poAmount || 0), 0);
+    
+    // Calculate average fill rate
+    const { totalFill, validItems } = openpos.reduce(
+      (acc: { totalFill: number; validItems: number }, po) => {
+        if (po.orderedQty > 0) {
+          return {
+            totalFill: acc.totalFill + (po.receivedQty / po.orderedQty) * 100,
+            validItems: acc.validItems + 1
+          };
+        }
+        return acc;
+      },
+      { totalFill: 0, validItems: 0 }
+    );
+    
+    return {
+      totalOpenPos: uniquePoNumbers.size,
+      totalPoValue: totalValue,
+      avgFillRate: validItems > 0 ? (totalFill / validItems) : 0
+    };
+  }, [openpos]);
+  
+  
+
+  // Format currency
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(value);
+  };
+
+  // Group PO items by PO number
+  const groupedPos = useMemo(() => {
+    const groups: Record<string, PoItem[]> = {};
+    
+    openpos.forEach(po => {
+      if (!groups[po.poNumber]) {
+        groups[po.poNumber] = [];
+      }
+      groups[po.poNumber].push(po);
+    });
+    
+    return groups;
+  }, [openpos]);
+
+  // Create PO groups with aggregated data
+  const poGroups = useMemo(() => {
+    return Object.entries(groupedPos).map(([poNumber, items]) => {
+      const totalOrderedQty = items.reduce((sum, item) => sum + item.orderedQty, 0);
+      const totalReceivedQty = items.reduce((sum, item) => sum + item.receivedQty, 0);
+      const totalAmount = items.reduce((sum, item) => sum + (item.poAmount || 0), 0);
+      const isComplete = items.every(item => item.receivedQty === item.orderedQty);
+      
+      return {
+        poNumber,
+        vendor: items[0].vendor,
+        items,
+        totalOrderedQty,
+        totalReceivedQty,
+        totalAmount,
+        isComplete
+      };
+    });
+  }, [groupedPos]);
+
+  // Filter PO groups
   const filteredPos = useMemo(() => {
-    return openpos.filter(po => {
+    return poGroups.filter(group => {
       const matchesSearch = 
-        po.poNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        po.vendor.toLowerCase().includes(searchTerm.toLowerCase());
+        group.poNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        group.vendor.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = 
         statusFilter === "all" || 
-        (statusFilter === "complete" && po.receivedQty === po.orderedQty) ||
-        (statusFilter === "pending" && po.receivedQty !== po.orderedQty);
+        (statusFilter === "complete" && group.isComplete) ||
+        (statusFilter === "pending" && !group.isComplete);
       
       const matchesVendor = 
-        vendorFilter === "all" || po.vendor === vendorFilter;
+        vendorFilter === "all" || group.vendor === vendorFilter;
       
       return matchesSearch && matchesStatus && matchesVendor;
     });
-  }, [openpos, searchTerm, statusFilter, vendorFilter]);
+  }, [poGroups, searchTerm, statusFilter, vendorFilter]);
 
-  // Calculate fill rate for each PO
-  const posWithMetrics = useMemo(() => {
-    return filteredPos.map(po => {
-      const fillRate = po.orderedQty > 0 ? (po.receivedQty * 100) / po.orderedQty : 0;
+  // Calculate fill rate for each PO group
+  const posWithMetrics = useMemo<PoGroup[]>(() => {
+    return filteredPos.map(group => {
+      const fillRate = group.totalOrderedQty > 0 ? 
+        (group.totalReceivedQty * 100) / group.totalOrderedQty : 0;
+      
       return {
-        ...po,
-        fillRate: fillRate.toFixed(2) + '%'
+        ...group,
+        fillRate: fillRate.toFixed(2) + '%',
+        // Ensure all required PoGroup properties are included
+        poNumber: group.poNumber,
+        skuCode: group.items[0].skuCode,
+        skuDescription: group.items[0].skuDescription,
+        vendor: group.vendor,
+        items: group.items,
+        totalOrderedQty: group.totalOrderedQty,
+        totalReceivedQty: group.totalReceivedQty,
+        totalAmount: group.totalAmount,
+        isComplete: group.isComplete
       };
     });
   }, [filteredPos]);
@@ -61,6 +174,14 @@ const OpenPos = () => {
   useMemo(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, vendorFilter]);
+
+  // Toggle PO group expansion
+  const toggleGroup = (poNumber: string) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [poNumber]: !prev[poNumber]
+    }));
+  };
 
   // Handle page change
   const handlePageChange = (newPage: number) => {
@@ -166,27 +287,49 @@ const OpenPos = () => {
                       <TableHead>PO Number</TableHead>
                       <TableHead>Vendor</TableHead>
                       <TableHead className="text-right">Ordered Qty</TableHead>
-                      <TableHead className="text-right">Received Qty</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead className="text-right">Fill Rate</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Total Amount</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedPos.map((po, index) => (
-                      <TableRow key={startIndex + index}>
-                        <TableCell className="font-medium">{po.poNumber}</TableCell>
-                        <TableCell>{po.vendor}</TableCell>
-                        <TableCell className="text-right">{po.orderedQty}</TableCell>
-                        <TableCell className="text-right">{po.receivedQty}</TableCell>
-                        <TableCell className="text-right">${po.poAmount.toFixed(2)}</TableCell>
-                        <TableCell className="text-right">{po.fillRate}</TableCell>
-                        <TableCell>
-                          <Badge variant={po.receivedQty === po.orderedQty ? "default" : "secondary"}>
-                            {po.receivedQty === po.orderedQty ? "Complete" : "Pending"}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
+                    {paginatedPos.map((group) => (
+                      <React.Fragment key={group.poNumber}>
+                        <TableRow 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => toggleGroup(group.poNumber)}
+                        >
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              {expandedGroups[group.poNumber] ? 
+                                <IconChevronUp className="h-4 w-4" /> : 
+                                <IconChevronDown className="h-4 w-4" />
+                              }
+                              {group.poNumber}
+                            </div>
+                          </TableCell>
+                          <TableCell>{group.vendor}</TableCell>
+                          <TableCell className="text-right">{group.totalOrderedQty}</TableCell>
+                          <TableCell className="text-right">₹{new Intl.NumberFormat('en-IN').format(parseFloat(group.totalAmount.toFixed(2)))}</TableCell>
+                        </TableRow>
+                        
+                        {expandedGroups[group.poNumber] && group.items.map((item, itemIndex) => (
+                          <TableRow key={`${group.poNumber}-${itemIndex}`} className="bg-muted/10">
+                            <TableCell colSpan={2} className="pl-12">
+                              <div className="flex flex-col">
+                                <span className="font-medium">
+                                  {item.skuCode?.toString() || item.itemCode?.toString() || 'N/A'}
+                                </span>
+                                <span className="text-muted-foreground text-sm">
+                                  {item.skuDescription?.toString() || item.itemName?.toString() || `Item ${itemIndex + 1}`}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">{item.orderedQty}</TableCell>
+                            <TableCell className="text-right">
+                              ₹{new Intl.NumberFormat('en-IN').format(parseFloat((item.poAmount || 0).toFixed(2)))}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </React.Fragment>
                     ))}
                   </TableBody>
                 </Table>
@@ -197,7 +340,6 @@ const OpenPos = () => {
                   <div className="text-sm text-muted-foreground">
                     Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredPos.length)} of {filteredPos.length} entries
                   </div>
-                  
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
@@ -205,22 +347,24 @@ const OpenPos = () => {
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
                     >
-                      <IconChevronLeft className="h-4 w-4" />
+                      <IconChevronLeft className="h-4 w-4 mr-2" />
                       Previous
                     </Button>
                     
-                    {getPageNumbers().map((page, index) => (
-                      <Button
-                        key={index}
-                        variant={currentPage === page ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => typeof page === 'number' && handlePageChange(page)}
-                        disabled={page === '...'}
-                        className={page === '...' ? "cursor-default" : ""}
-                      >
-                        {page}
-                      </Button>
-                    ))}
+                    <div className="flex space-x-1">
+                      {getPageNumbers().map((page, index) => (
+                        <Button
+                          key={index}
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => typeof page === 'number' && handlePageChange(page)}
+                          disabled={page === '...'}
+                          className={page === '...' ? "cursor-default" : ""}
+                        >
+                          {page}
+                        </Button>
+                      ))}
+                    </div>
                     
                     <Button
                       variant="outline"
@@ -237,7 +381,9 @@ const OpenPos = () => {
             </>
           ) : (
             <div className="text-center py-12">
-              <IconFileSpreadsheet className="mx-auto h-12 w-12 text-muted-foreground" />
+              <div className="mx-auto h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                <IconSearch className="h-6 w-6 text-muted-foreground" />
+              </div>
               <h3 className="mt-4 text-lg font-medium">No purchase orders found</h3>
               <p className="mt-2 text-sm text-muted-foreground">
                 {openpos.length === 0 

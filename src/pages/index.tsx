@@ -193,7 +193,7 @@ export default function DealersDashboard() {
             <div className="h-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {/* Dealer Profiles */}
             <MetricCard
-              title="Fill Rate"
+              title="Unit Fill Rate"
               value={FillRate().toPrecision(2).toString()+"%"}
               subtitle="7 platforms avg"
               trend={{ value: 12, isPositive: true }}
