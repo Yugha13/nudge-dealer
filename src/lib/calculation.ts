@@ -89,8 +89,8 @@ export const getAllMetrics = () => ({
 });
 
 export const Mapping = () => {
-  const {pos, landingRates, addUniversalPo, clearPO } = useDataStore();
-  
+  const {pos, landingRates } = useDataStore();
+  if(!pos) return
   // Create a map for quick lookup of landing rates by skuid
   const landingRateMap = new Map(landingRates.map(rate => [rate.skuId, rate]));
   
@@ -103,7 +103,7 @@ export const Mapping = () => {
       orderedQty: po.orderedQty,
       receivedQty: po.receivedQty,
       poAmount: po.poAmount,
-      skuCode: landingRateData?.skuId,
+      skuCode: landingRateData?.skuId || po.skuCode, // Fallback to original skuCode
       units: ((landingRateData?.cases || 1)),
       cases: (po.orderedQty / (landingRateData?.cases || 1)),
       grncase: (po.receivedQty / (landingRateData?.cases || 1)),
@@ -116,10 +116,22 @@ export const Mapping = () => {
     };
   });
   
-  console.log("here you go: ", mappedData);
-  clearPO();
-  addUniversalPo(mappedData)
-  return mappedData
+  console.log("Mapped data: ", mappedData);
+  
+  return mappedData;
+};
+
+// Hook for updating universal PO - must be used in React components
+export const useUpdateUniversalPO = () => {
+  const { setUniversalPo } = useDataStore();
+  
+  const updateUniversalPO = () => {
+    const mappedData = Mapping();
+    setUniversalPo(mappedData);
+    return mappedData;
+  };
+  
+  return updateUniversalPO;
 };
 
 // sum of PO billvalue = status !expired  | sum of poLineValueWithTax
@@ -134,3 +146,80 @@ export const Mapping = () => {
 
 
 // cosolidation //
+
+// Sum of PO billing value for status: completed, confirmed, expired
+export const SumOfPOBillingValue = (): number => {
+  const mappedData = Mapping();
+  if (!mappedData || !Array.isArray(mappedData) || mappedData.length === 0) return 0;
+  
+  const allowedStatuses = ['completed', 'confirmed', 'expired'];
+  return mappedData
+    .filter(po => allowedStatuses.includes(po.status?.toLowerCase() || ''))
+    .reduce((acc: number, cur) => acc + (cur.poLineValueWithTax || 0), 0);
+};
+
+// Sum of PO cases for status: completed, confirmed, expired
+export const SumOfPOCases = (): number => {
+  const mappedData = Mapping();
+  if (!mappedData || !Array.isArray(mappedData) || mappedData.length === 0) return 0;
+  
+  const allowedStatuses = ['completed', 'confirmed', 'expired'];
+  return mappedData
+    .filter(po => allowedStatuses.includes(po.status?.toLowerCase() || ''))
+    .reduce((acc: number, cur) => acc + (cur.cases || 0), 0);
+};
+
+// Sum of closed PO billing value for status: completed (from poLineValueWithTax)
+export const SumOfClosedPOBillingValue = (): number => {
+  const mappedData = Mapping();
+  if (!mappedData || !Array.isArray(mappedData) || mappedData.length === 0) return 0;
+  
+  return mappedData
+    .filter(po => po.status?.toLowerCase() === 'completed')
+    .reduce((acc: number, cur) => acc + (cur.poLineValueWithTax || 0), 0);
+};
+
+// Sum of closed PO cases for status: completed (ordered quantity converted to cases)
+export const SumOfClosedPOCases = (): number => {
+  const mappedData = Mapping();
+  if (!mappedData || !Array.isArray(mappedData) || mappedData.length === 0) return 0;
+  
+  // Get unique mapped data by poNumber
+  const uniqueMappedData = mappedData.filter((po, index, arr) => 
+    arr.findIndex(item => item.poNumber === po.poNumber) === index
+  );
+  
+  return uniqueMappedData
+    .filter(po => po.status?.toLowerCase() === 'completed')
+    .reduce((acc: number, cur) => acc + (cur.cases || 0), 0);
+};
+
+// Sum of open PO billing value from openpos data (from poLineValueWithTax)
+export const SumOfOpenPOBillingValue = (): number => {
+  const { openpos } = getDataStore();
+  if (!openpos || !Array.isArray(openpos) || openpos.length === 0) return 0;
+  
+  return openpos.reduce((acc: number, cur) => acc + (cur.poLineValueWithTax || 0), 0);
+};
+
+// Sum of GRN bill value for items with receivedQty > 0 and status: completed
+export const SumOfGrnBillValue = (): number => {
+  const mappedData = Mapping();
+  if (!mappedData || !Array.isArray(mappedData) || mappedData.length === 0) return 0;
+  
+  return mappedData
+    .filter(po => po.receivedQty > 0 && po.status?.toLowerCase() === 'completed')
+    .reduce((acc: number, cur) => acc + (cur.grnBillValue || 0), 0);
+};
+export const SumOfGrnCases = (): number => {
+  const mappedData = Mapping();
+  if (!mappedData || !Array.isArray(mappedData) || mappedData.length === 0) return 0;
+  
+  return mappedData
+    .filter(po => po.receivedQty > 0 && po.status?.toLowerCase() === 'completed')
+    .reduce((acc: number, cur) => acc + (cur.grncase || 0), 0);
+}
+export const POBillingValue = () => {
+  return 0
+}
+

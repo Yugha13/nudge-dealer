@@ -20,6 +20,7 @@ import {
   AreaChart,
   Area
 } from 'recharts';
+import { SumOfClosedPOBillingValue, SumOfClosedPOCases, SumOfGrnCases, SumOfOpenPOBillingValue, SumOfPOBillingValue, SumOfPOCases, } from '@/lib/calculation';
 
 // Mock data - replace with real data from your API
 
@@ -76,12 +77,12 @@ const CaseAnalytics = () => {
   
   // Update KPI data with real values
   const kpiData = [
-    { id: 1, title: 'Sum of PO Cases', value: totalPOCases.toString(), change: '+12.5%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
-    { id: 2, title: 'Closed PO Cases', value: closedPOCases.toString(), change: '+8.2%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
-    { id: 3, title: 'GRN Cases', value: '843', change: '+5.7%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
-    { id: 4, title: 'Open PO Cases', value: openPOCases.toString(), change: '+5.7%', trend: 'down', icon: <TrendingDown className="h-5 w-5" /> },
-    { id: 5, title: 'PO Billing Value', value: formatCurrency(totalPOBillingValue), change: '+15.3%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
-    { id: 6, title: 'Closed PO Value', value: formatCurrency(closedPOValue), change: '+9.8%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
+    { id: 1, title: 'Sum of PO Cases', value: SumOfPOCases().toLocaleString(), change: '+12.5%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
+    { id: 2, title: 'Closed PO Cases', value: SumOfClosedPOCases().toLocaleString(), change: '+8.2%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
+    { id: 3, title: 'GRN Cases', value: SumOfGrnCases().toLocaleString(), change: '+5.7%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
+    { id: 4, title: 'Open PO Cases', value: 2673.23, change: '+5.7%', trend: 'down', icon: <TrendingDown className="h-5 w-5" /> },
+    { id: 5, title: 'PO Billing Value', value: SumOfPOBillingValue(), change: '+15.3%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
+    { id: 6, title: 'Closed PO Value', value: SumOfClosedPOBillingValue(), change: '+9.8%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
     { id: 7, title: 'GRN Billing Values', value: '₹612K', change: '+7.1%', trend: 'up', icon: <TrendingUp className="h-5 w-5" /> },
     { id: 8, title: 'Open PO Value', value: formatCurrency(openPOValue), change: '-3.2%', trend: 'down', icon: <TrendingDown className="h-5 w-5" /> },
   ];

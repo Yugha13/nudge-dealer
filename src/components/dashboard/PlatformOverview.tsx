@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronRight, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { FillRate, SumOfBilling, TotalOrders } from '@/lib/calculation';
+import { FillRate, POBillingValue, SumOfBilling, TotalOrders } from '@/lib/calculation';
 
 
 
@@ -191,11 +191,11 @@ export default function PlatformOverview() {
             <div className="grid grid-cols-3 gap-3 mt-4">
               <div>
                 <p className="text-xs text-muted-foreground">Revenue</p>
-                <p className="font-semibold text-foreground">{platform.revenue}</p>
+                <p className="font-semibold text-foreground">₹{formatIndianNumber(POBillingValue())}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Orders</p>
-                <p className="font-semibold text-foreground">{platform.orders}</p>
+                <p className="font-semibold text-foreground">{TotalOrders()}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Fill Rate</p>

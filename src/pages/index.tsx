@@ -7,12 +7,47 @@ import {
   CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FillRate, LineFillRate, NonZeroFillRate } from "@/lib/calculation"
+import { FillRate, LineFillRate, NonZeroFillRate, POBillingValue, } from "@/lib/calculation"
 import { DashboardRevenue } from "@/charts/dashboard-revenue";
+import { useDataStore } from "@/store/useDataStore";
+import { useEffect } from "react";
 
 export const description = "A radial chart with text"
 
 export default function DealersDashboard() {
+  const {pos, landingRates, setUniversalPo } = useDataStore();
+  // Use useEffect to prevent infinite re-renders
+  useEffect(() => {
+    if(!pos) return;
+    
+    
+    const landingRateMap = new Map(landingRates.map(rate => [rate.skuId, rate]));
+    
+    // Map pos items to their corresponding landing rates using skucode -> skuid mapping
+    const mappedData = pos.map(po => {
+      const landingRateData = landingRateMap.get(po.skuCode);
+      return {
+        poNumber: po.poNumber,
+        vendor: po.vendor,
+        orderedQty: po.orderedQty,
+        receivedQty: po.receivedQty,
+        poAmount: po.poAmount,
+        skuCode: landingRateData?.skuCode|| po.skuCode, // Fallback to original skuCode
+        units: ((landingRateData?.cases || 1)),
+        cases: (po.orderedQty / (landingRateData?.cases || 1)),
+        grncase: (po.receivedQty / (landingRateData?.cases || 1)),
+        mrp: landingRateData?.mrp || 0,
+        landingRate: landingRateData?.landingRate || 0,
+        skuDescription: po.skuDescription,
+        poLineValueWithTax: po.poLineValueWithTax,
+        grnBillValue: po.receivedQty * (landingRateData?.landingRate || 0),
+        status: po.status
+      };
+    });
+    
+    console.log("Mapped data: ", mappedData);
+    setUniversalPo(mappedData);
+  }, [pos, landingRates, setUniversalPo]);
 
   return (
     <div className="px-6 space-y-6">

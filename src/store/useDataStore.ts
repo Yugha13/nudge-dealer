@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { StoreApi } from 'zustand';
 
 export type PO = {
   poNumber: string;
@@ -13,6 +12,24 @@ export type PO = {
   poLineValueWithTax: number;
   status: 'completed' | 'confirmed' | 'expired' | 'open';
 };
+
+export type uni = {
+  poNumber: string;
+  vendor: string;
+  orderedQty: number;
+  receivedQty: number;
+  poAmount: number;
+  skuCode: string;
+  units: number;
+  cases: number;
+  grncase: number;
+  mrp: number;
+  landingRate: number;
+  skuDescription: string;
+  poLineValueWithTax: number;
+  grnBillValue: number;
+  status: 'completed' | 'confirmed' | 'expired' | 'open';
+}
 
 export type LandingRate = {
   key: string;
@@ -29,6 +46,8 @@ type Store = {
   pos: PO[];
   openpos: PO[];
   landingRates: LandingRate[];
+  universalPO: uni[];
+  setUniversalPo: (po: uni[]) => void;
   addPO: (po: PO) => void;
   addOpenPO: (po: PO) => void;
   addLandingRate: (rate: LandingRate) => void;
@@ -42,6 +61,14 @@ const store = create<Store>()(
       pos: [],
       openpos: [],
       landingRates: [],
+      universalPO: [],
+      setUniversalPo: (po) =>
+        set(() => {
+          console.log('Setting Universal PO:', po); // Debug log
+          return {
+            universalPO: [...po],
+          };
+        }),
       addPO: (po) =>
         set((state) => {
           // Validate PO before adding
@@ -82,7 +109,7 @@ const store = create<Store>()(
             landingRates: [...state.landingRates, rate],
           };
         }),
-      clearAll: () => set({ pos: [], openpos: [], landingRates: []}),
+      clearAll: () => set({ pos: [], openpos: [], landingRates: [], universalPO: []}),
     }),
     {
       name: "erp-data-storage",
@@ -94,6 +121,7 @@ const store = create<Store>()(
         if (!state.pos) state.pos = [];
         if (!state.openpos) state.openpos = [];
         if (!state.landingRates) state.landingRates = [];
+        if (!state.universalPO) state.universalPO = [];
         
         console.log('Hydration finished');
       },

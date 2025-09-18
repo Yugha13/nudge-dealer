@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Pie, PieChart, Cell, ResponsiveContainer, Tooltip } from "recharts"
 import { Button } from "@/components/ui/button"
-import { SumOfBilling } from "@/lib/calculation"
+import { SumOfGrnBillValue } from "@/lib/calculation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 // Format number to Indian currency format (3 digits: X.XXCr or X.XXL)
@@ -34,8 +34,12 @@ interface TargetData {
 }
 
 export function DashboardRevenue() {
+
   const [data, setData] = React.useState<RevenueData[]>([])
-  const [currentRevenue, setCurrentRevenue] = React.useState<number>(0)
+  const rev = SumOfGrnBillValue();
+  console.log('rev',rev);
+  
+  const [currentRevenue, setCurrentRevenue] = React.useState<number>(rev)
   const [target, setTarget] = React.useState<number>(0)
   const [progress, setProgress] = React.useState<number>(0)
   const [hasTarget, setHasTarget] = React.useState<boolean>(false)
@@ -45,7 +49,7 @@ export function DashboardRevenue() {
   // Load and update revenue data
   React.useEffect(() => {
     const updateData = () => {
-      const current = SumOfBilling()
+      const current = rev
       setCurrentRevenue(current)
       
       // Check for target in localStorage
