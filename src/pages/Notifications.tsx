@@ -25,61 +25,49 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: '1',
-      title: 'New message from Sarah',
-      description: 'Hi there! I wanted to follow up on our project timeline.',
-      time: '10 min ago',
+      title: 'Vendor Request',
+      description: 'Vendor requested the stocks',
+      time: '5 min ago',
       read: false,
       type: 'info',
       sender: {
-        name: 'Sarah Johnson',
-        avatar: '/avatars/02.png'
+        name: 'Inventory System',
+        avatar: ''
       }
     },
     {
       id: '2',
-      title: 'Task completed',
-      description: 'Your task "Update user dashboard" has been marked as completed.',
+      title: 'Delivery Update',
+      description: 'Vendor delivered to Swiggy',
       time: '1 hour ago',
       read: false,
       type: 'success',
       sender: {
-        name: 'System',
+        name: 'Logistics',
         avatar: ''
       }
     },
     {
       id: '3',
-      title: 'System Maintenance',
-      description: 'Scheduled maintenance this weekend. Expected downtime: 2 hours.',
+      title: 'POS Update',
+      description: '1005 POS raised today',
       time: '3 hours ago',
       read: true,
-      type: 'warning',
+      type: 'info',
       sender: {
-        name: 'System Admin',
+        name: 'Sales System',
         avatar: ''
       }
     },
     {
       id: '4',
-      title: 'New feature available',
-      description: 'Check out the new analytics dashboard with enhanced reporting features.',
-      time: '1 day ago',
+      title: 'Inventory Update',
+      description: 'Manufacturer sent the stocks',
+      time: '5 hours ago',
       read: true,
-      type: 'info',
+      type: 'success',
       sender: {
-        name: 'Product Team',
-        avatar: ''
-      }
-    },
-    {
-      id: '5',
-      title: 'Security Alert',
-      description: 'New login detected from a new device. Was this you?',
-      time: '2 days ago',
-      read: true,
-      type: 'error',
-      sender: {
-        name: 'Security Team',
+        name: 'Inventory System',
         avatar: ''
       }
     }

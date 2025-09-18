@@ -40,9 +40,9 @@ const valueData = [
 ];
 
 const caseDistribution = [
-  { name: 'Open', value: 400, color: '#3b82f6' },
+  { name: 'Open', value: 400, color: '#8b5cf6' },
   { name: 'Closed', value: 600, color: '#10b981' },
-  { name: 'GRN', value: 300, color: '#8b5cf6' },
+  { name: 'GRN', value: 300, color: '#7c3aed' },
 ];
 
 const vendorData = [
@@ -168,7 +168,7 @@ const CaseAnalytics = () => {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Area type="monotone" dataKey="cases" stroke="#3b82f6" fill="#93c5fd" name="Total Cases" fillOpacity={0.8} />
+                      <Area type="monotone" dataKey="cases" stroke="#8b5cf6" fill="#c4b5fd" name="Total Cases" fillOpacity={0.8} />
                       <Area type="monotone" dataKey="closed" stroke="#10b981" fill="#a7f3d0" name="Closed" fillOpacity={0.8} />
                       <Area type="monotone" dataKey="grn" stroke="#8b5cf6" fill="#ddd6fe" name="GRN" fillOpacity={0.8} />
                     </AreaChart>

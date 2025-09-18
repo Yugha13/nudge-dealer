@@ -304,7 +304,7 @@ const orderData = [
 
 
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const COLORS = ['#8b5cf6', '#00C49F', '#FFBB28', '#7c3aed'];
 
 export default function VendorAnalytics() {
   const [timeRange] = useState('monthly');
@@ -523,7 +523,7 @@ export default function VendorAnalytics() {
                   <Line 
                     type="monotone" 
                     dataKey="orders" 
-                    stroke="#3b82f6" 
+                    stroke="#8b5cf6" 
                     strokeWidth={2}
                     dot={{ r: 4 }}
                     activeDot={{ r: 6 }}

@@ -334,9 +334,9 @@ function AddEditTargetDialog({
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="on_track">On Track</SelectItem>
-                  <SelectItem value="at_risk">At Risk</SelectItem>
-                  <SelectItem value="off_track">Off Track</SelectItem>
+                  <SelectItem value="todo">Not Started</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -424,11 +424,15 @@ const Targets = () => {
       </div>
 
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+          {/* Vertical separating lines */}
+          <div className="hidden md:block absolute left-1/3 top-0 bottom-0 w-px bg-border"></div>
+          <div className="hidden md:block absolute left-2/3 top-0 bottom-0 w-px bg-border"></div>
+          
           {/* Todo Column */}
           <div className="space-y-4">
             <div className="flex items-center justify-between bg-muted/50 p-3 rounded-lg">
-              <h2 className="font-medium">To Do</h2>
+              <h2 className="font-medium">Not Started</h2>
               <span className="text-sm text-muted-foreground">
                 {todoTargets.length} items
               </span>

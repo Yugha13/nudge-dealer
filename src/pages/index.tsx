@@ -1,5 +1,4 @@
 import { Card, CardContent } from "@/components/ui/card";
-import PerformanceGauge  from "@/components/dashboard/PerformanceGauge";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import UtilizationChart  from "@/components/dashboard/UtilizationChart";
 import { 
@@ -9,66 +8,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FillRate, LineFillRate, NonZeroFillRate } from "@/lib/calculation"
-import {
-  Label,
-  PolarGrid,
-  PolarRadiusAxis,
-  RadialBar,
-  RadialBarChart,
-} from "recharts"
-
-import {
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { type ChartConfig, ChartContainer } from "@/components/ui/chart"
-import { SumOfBilling } from "@/lib/calculation"
 import { DashboardRevenue } from "@/charts/dashboard-revenue";
 
 export const description = "A radial chart with text"
 
 export default function DealersDashboard() {
 
-  function formatIndianNumber(num:number) {
-    let value, unit;
-    
-    if (num >= 1e7) {        // crore
-      value = num / 1e7;
-      unit = "Cr";
-    } else if (num >= 1e5) { // lakh
-      value = num / 1e5;
-      unit = "L";
-    } else if (num >= 1e3) { // thousand
-      value = num / 1e3;
-      unit = "K";
-    } else {
-      return num.toString();
-    }
-    
-    // Decide decimal places based on digits before point
-    const intPart = Math.floor(value).toString().length;
-    const decimals = intPart === 1 ? 2 : 1;
-    
-    return parseFloat(value.toFixed(decimals) + unit);
-    }
-    
-    
-    const chartData = [
-      { browser: "safari", visitors: formatIndianNumber(SumOfBilling()), fill: "var(--chart-2)" },
-    ]
-    
-    const chartConfig = {
-      visitors: {
-        label: "Rev",
-      },
-      safari: {
-        label: "Safari",
-        color: "var(--chart-2)",
-      },
-    } satisfies ChartConfig
-    
-  
   return (
     <div className="px-6 space-y-6">
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -82,7 +27,7 @@ export default function DealersDashboard() {
                   <div className="space-y-3">
                     <div>
                       <h2 className="text-2xl font-bold">Welcome back, John!</h2>
-                      <p className="text-blue-100 mt-1">Have a great day at work</p>
+                      <p className="text-purple-100 mt-1">Have a great day at work</p>
                     </div>
                   </div>
                   <div className="bg-white/20 p-3 rounded-full">

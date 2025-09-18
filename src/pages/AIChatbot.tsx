@@ -144,7 +144,7 @@ export default function AIChatbot() {
       id: 'tasks',
       title: 'Task Creation',
       description: 'Automate routine work and simplify complex task flows.',
-      icon: <Plus className="text-blue-500" />,
+      icon: <Plus className="text-purple-500" />,
     },
     {
       id: 'forecasting',
@@ -295,7 +295,7 @@ export default function AIChatbot() {
                   type="submit"
                   size="lg"
                   disabled={isTyping || !inputValue.trim()}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
                 >
                   {isTyping ? <TypingIndicator /> : 'Generate'}
                 </Button>
