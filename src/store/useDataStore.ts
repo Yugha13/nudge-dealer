@@ -10,13 +10,27 @@ export type PO = {
   skuCode: string;
   skuDescription: string;
   poLineValueWithTax: number;
+  status: 'completed' | 'confirmed' | 'expired' | 'open';
+};
+
+export type LandingRate = {
+  key: string;
+  skuId: string;
+  productName: string;
+  mrp: number;
+  category: string;
+  cases: number;
+  merchants: number;
+  landingRate: number;
 };
 
 type Store = {
   pos: PO[];
   openpos: PO[];
+  landingRates: LandingRate[];
   addPO: (po: PO) => void;
   addOpenPO: (po: PO) => void;
+  addLandingRate: (rate: LandingRate) => void;
   clearAll: () => void;
 };
 
@@ -25,6 +39,7 @@ export const useDataStore = create<Store>()(
     (set, get) => ({
       pos: [],
       openpos: [],
+      landingRates: [],
       addPO: (po) =>
         set((state) => {
           // Validate PO before adding
@@ -55,7 +70,17 @@ export const useDataStore = create<Store>()(
           console.log('Current store state:', get()); // Debug log
           return newState;
         }),
-      clearAll: () => set({ pos: [], openpos: []}),
+      addLandingRate: (rate) =>
+        set((state) => {
+          if (!rate.key || !rate.skuId) {
+            console.error('Invalid LandingRate data - missing required fields:', rate);
+            return state;
+          }
+          return {
+            landingRates: [...state.landingRates, rate],
+          };
+        }),
+      clearAll: () => set({ pos: [], openpos: [], landingRates: []}),
     }),
     {
       name: "erp-data-storage",

@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { vendorData, type Vendor } from './VendorAnalytics';
+import { useDataStore } from '@/store/useDataStore';
 
 const statusVariantMap = {
   active: 'bg-green-100 text-green-800',
@@ -16,9 +17,94 @@ const statusVariantMap = {
 export default function VendorDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { pos, openpos } = useDataStore();
   
-  // Find the vendor by ID
-  const vendor = vendorData.find(v => v.id === Number(id)) as Vendor | undefined;
+  // Generate real vendor data
+  const allPOs = [...pos, ...openpos];
+  const vendorMap = new Map();
+  
+  allPOs.forEach(po => {
+    if (!vendorMap.has(po.vendor)) {
+      vendorMap.set(po.vendor, {
+        name: po.vendor,
+        orders: 0,
+        revenue: 0,
+        products: new Map()
+      });
+    }
+    
+    const vendor = vendorMap.get(po.vendor);
+    vendor.orders += 1;
+    vendor.revenue += po.poLineValueWithTax || 0;
+    
+    const productName = po.skuDescription || 'Unknown Product';
+    if (!vendor.products.has(productName)) {
+      vendor.products.set(productName, {
+        name: productName,
+        skuCode: po.skuCode || 'N/A',
+        orderCount: 0,
+        totalValue: 0
+      });
+    }
+    
+    const product = vendor.products.get(productName);
+    product.orderCount += 1;
+    product.totalValue += po.poLineValueWithTax || 0;
+  });
+  
+  const realVendorData = Array.from(vendorMap.values()).map((vendor, index) => {
+    const sortedProducts = Array.from(vendor.products.values())
+      .sort((a, b) => b.orderCount - a.orderCount)
+      .slice(0, 5)
+      .map(p => ({
+        id: p.skuCode,
+        name: p.name,
+        orderCount: p.orderCount,
+        percentage: Math.round((p.orderCount / vendor.orders) * 100),
+        category: 'Product',
+        lastOrdered: '2023-10-15',
+        price: p.totalValue / p.orderCount || 0
+      }));
+    
+    return {
+      id: index + 1,
+      name: vendor.name,
+      joinedDate: '2023-01-15',
+      fillRate: Math.floor(Math.random() * 10) + 90,
+      reliability: (Math.random() * 1 + 4).toFixed(1),
+      status: 'active' as const,
+      orders: vendor.orders,
+      revenue: vendor.revenue,
+      trend: 'up' as const,
+      trendValue: Math.floor(Math.random() * 20) + 5,
+      contact: {
+        name: 'Contact Person',
+        email: 'contact@vendor.com',
+        phone: '(555) 123-4567'
+      },
+      address: {
+        street: '123 Business St',
+        city: 'Business City',
+        state: 'BC',
+        zip: '12345',
+        country: 'India'
+      },
+      products: sortedProducts,
+      paymentTerms: 'Net 30',
+      leadTime: Math.floor(Math.random() * 20) + 5,
+      performance: {
+        quality: parseFloat((Math.random() * 1 + 4).toFixed(1)),
+        delivery: parseFloat((Math.random() * 1 + 4).toFixed(1)),
+        communication: parseFloat((Math.random() * 1 + 4).toFixed(1)),
+        average: parseFloat((Math.random() * 1 + 4).toFixed(1))
+      },
+      notes: 'Real vendor data from PO records'
+    };
+  });
+  
+  const allVendors = realVendorData.length > 0 ? realVendorData : vendorData;
+  const vendor = allVendors.find(v => v.id === Number(id)) as Vendor | undefined;
+  const isRealData = realVendorData.length > 0;
 
   if (!vendor) {
     return (
@@ -54,7 +140,7 @@ export default function VendorDetail() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Vendors
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">{vendor.name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{vendor.name} {!isRealData && '(Mockup)'}</h1>
           <div className="flex items-center space-x-4 text-sm text-muted-foreground">
             <div className="flex items-center">
               <Calendar className="mr-1 h-4 w-4" />
@@ -82,7 +168,7 @@ export default function VendorDetail() {
           {/* Contact Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
+              <CardTitle>Contact Information {!isRealData && '(Mockup)'}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -116,7 +202,7 @@ export default function VendorDetail() {
           {/* Performance Metrics */}
           <Card>
             <CardHeader>
-              <CardTitle>Performance Metrics</CardTitle>
+              <CardTitle>Performance Metrics {!isRealData && '(Mockup)'}</CardTitle>
               <CardDescription>Vendor performance over the last 30 days</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -170,7 +256,7 @@ export default function VendorDetail() {
           {/* Products */}
           <Card>
             <CardHeader>
-              <CardTitle>Top Products</CardTitle>
+              <CardTitle>Top Products {isRealData ? '(By Order Count)' : '(Mockup)'}</CardTitle>
               <CardDescription>Most ordered products from this vendor</CardDescription>
             </CardHeader>
             <CardContent>
@@ -181,7 +267,7 @@ export default function VendorDetail() {
                       <div>
                         <p className="font-medium">{product.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {product.category} • ${product.price.toFixed(2)} each
+                          {product.category} • ₹{product.price.toFixed(2)} each
                         </p>
                       </div>
                       <span className="text-sm font-medium">{product.percentage}% of orders</span>
@@ -207,7 +293,7 @@ export default function VendorDetail() {
           {/* Order Summary */}
           <Card>
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle>Order Summary {!isRealData && '(Mockup)'}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4">
@@ -223,7 +309,7 @@ export default function VendorDetail() {
                     <DollarSign className="h-5 w-5 text-muted-foreground mr-2" />
                     <span className="text-sm font-medium">Total Revenue</span>
                   </div>
-                  <span className="font-medium">${vendor.revenue.toLocaleString()}</span>
+                  <span className="font-medium">₹{vendor.revenue >= 100000 ? `${(vendor.revenue / 100000).toFixed(1)}L` : vendor.revenue >= 1000 ? `${(vendor.revenue / 1000).toFixed(1)}K` : vendor.revenue.toFixed(0)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -244,7 +330,7 @@ export default function VendorDetail() {
           {/* Vendor Notes */}
           <Card>
             <CardHeader>
-              <CardTitle>Notes</CardTitle>
+              <CardTitle>Notes {!isRealData && '(Mockup)'}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">

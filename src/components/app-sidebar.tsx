@@ -66,6 +66,11 @@ const data = {
       icon: IconDatabase,
     },
     {
+      title: "Upload Landing Rate",
+      url: "/landing-rate",
+      icon: IconMoneybag,
+    },
+    {
       title: "Case Analytics",
       url: "/case-analytics",
       icon: IconClipboardList,

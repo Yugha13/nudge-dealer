@@ -57,15 +57,14 @@ const CaseAnalytics = () => {
   const { pos, openpos } = useDataStore();
   
   // Calculate real metrics from store data
-  const totalPOBillingValue = [...pos, ...openpos].reduce((sum, po) => {
-    const value = po.poLineValueWithTax || 0;
-    return sum + value;
-  }, 0);
-  const totalPOCases = pos.length + openpos.length;
-  const closedPOCases = pos.length;
-  const openPOCases = openpos.length;
-  const closedPOValue = pos.reduce((sum, po) => sum + (po.poLineValueWithTax || 0), 0);
-  const openPOValue = openpos.reduce((sum, po) => sum + (po.poLineValueWithTax || 0), 0);
+  const allPOs = [...pos, ...openpos];
+  const completedPOs = allPOs.filter(po => ['completed', 'confirmed', 'expired'].includes(po.status || 'open'));
+  const totalPOBillingValue = completedPOs.reduce((sum, po) => sum + (po.poLineValueWithTax || 0), 0);
+  const totalPOCases = completedPOs.length;
+  const closedPOCases = allPOs.filter(po => po.status === 'completed').length;
+  const openPOCases = allPOs.filter(po => po.status === 'open').length;
+  const closedPOValue = allPOs.filter(po => po.status === 'completed').reduce((sum, po) => sum + (po.poLineValueWithTax || 0), 0);
+  const openPOValue = allPOs.filter(po => po.status === 'open').reduce((sum, po) => sum + (po.poLineValueWithTax || 0), 0);
   
   // Format currency in rupees
   const formatCurrency = (value: number) => {

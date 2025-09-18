@@ -372,6 +372,7 @@ const Upload = () => {
           skuCode: row["SkuCode"]?.toString().trim() || '',
           skuDescription: row["SkuDescription"]?.toString().trim() || '',
           poLineValueWithTax: parseFloat(row["PoLineValueWithTax"]?.toString() || '0'),
+          status: 'completed' as const,
         };
       }).filter(po => {
         const isValid = po.poNumber && po.vendor && po.poNumber.trim() !== '' && po.vendor.trim() !== '';
@@ -575,7 +576,8 @@ const Upload = () => {
               poAmount: 1500.00,
               skuCode: "TEST-SKU-001",
               skuDescription: "Test Product",
-              poLineValueWithTax: 1650.00
+              poLineValueWithTax: 1650.00,
+              status: 'completed'
             });
           }}
         >
@@ -591,7 +593,8 @@ const Upload = () => {
               poAmount: 3200.00,
               skuCode: "574001",
               skuDescription: "Open Product",
-              poLineValueWithTax: 3520.00
+              poLineValueWithTax: 3520.00,
+              status: 'open'
             });
           }}
         >

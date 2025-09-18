@@ -15,6 +15,7 @@ import NotificationsPage from "./pages/Notifications"
 import AiChatPage from "./pages/AiChat"
 import Conversation from "./pages/Conversation"
 import CaseAnalytics from "./pages/CaseAnalytics"
+import LandingRate from "./pages/LandingRate"
 
 export default function Page() {
   return (
@@ -39,6 +40,7 @@ export default function Page() {
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/case-analytics" element={<CaseAnalytics />} />
+                <Route path="/landing-rate" element={<LandingRate />} />
               </Routes>
             </div>
           </div>
