@@ -302,12 +302,7 @@ const orderData = [
   { month: 'Jul', orders: 700 },
 ];
 
-const vendorContribution = [
-  { name: 'Vendor A', value: 35 },
-  { name: 'Vendor B', value: 25 },
-  { name: 'Vendor C', value: 20 },
-  { name: 'Others', value: 20 },
-];
+
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -349,6 +344,7 @@ export default function VendorAnalytics() {
     const product = vendor.products.get(productName);
     product.orderCount += 1;
     product.totalValue += po.poLineValueWithTax || 0;
+    product.totalQuantity = (product.totalQuantity || 0) + (po.orderedQty || 0);
     
     vendor.lastOrder = new Date().toISOString().split('T')[0]; // Mock date
   });
@@ -374,6 +370,69 @@ export default function VendorAnalytics() {
   });
   
   const displayVendors = realVendorData.length > 0 ? realVendorData : vendorData;
+  
+  // Generate real vendor contribution data
+  const realVendorContribution = realVendorData.length > 0 ? (() => {
+    const sortedVendors = realVendorData
+      .sort((a, b) => b.orders - a.orders)
+      .slice(0, 3);
+    
+    const totalOrders = realVendorData.reduce((sum, v) => sum + v.orders, 0);
+    const top3Orders = sortedVendors.reduce((sum, v) => sum + v.orders, 0);
+    const othersOrders = totalOrders - top3Orders;
+    
+    const result = sortedVendors.map(vendor => ({
+      name: vendor.name,
+      value: Math.round((vendor.orders / totalOrders) * 100)
+    }));
+    
+    if (othersOrders > 0) {
+      result.push({
+        name: 'Others',
+        value: Math.round((othersOrders / totalOrders) * 100)
+      });
+    }
+    
+    return result;
+  })() : [
+    { name: 'Vendor A', value: 35 },
+    { name: 'Vendor B', value: 25 },
+    { name: 'Vendor C', value: 20 },
+    { name: 'Others', value: 20 },
+  ];
+  
+  // Get all products across all vendors for top products section
+  const allProducts = realVendorData.length > 0 ? (() => {
+    const productMap = new Map();
+    
+    realVendorData.forEach(vendor => {
+      vendor.products.forEach(product => {
+        const key = product.name;
+        if (!productMap.has(key)) {
+          productMap.set(key, {
+            name: product.name,
+            totalOrders: 0,
+            totalQuantity: 0,
+            vendors: new Set()
+          });
+        }
+        
+        const prod = productMap.get(key);
+        prod.totalOrders += product.orderCount;
+        prod.totalQuantity += product.totalQuantity || 0;
+        prod.vendors.add(vendor.name);
+      });
+    });
+    
+    return Array.from(productMap.values())
+      .sort((a, b) => b.totalOrders - a.totalOrders)
+      .slice(0, 10)
+      .map(product => ({
+        ...product,
+        vendorCount: product.vendors.size,
+        vendors: Array.from(product.vendors)
+      }));
+  })() : [];
 
   const totalVendors = realVendorData.length;
   const activeVendors = realVendorData.filter(v => v.status === 'active').length;
@@ -477,7 +536,7 @@ export default function VendorAnalytics() {
 
         <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Vendor Contribution</CardTitle>
+            <CardTitle>Vendor Contribution {realVendorData.length > 0 ? '' : '(Mockup)'}</CardTitle>
             <CardDescription>By order volume</CardDescription>
           </CardHeader>
           <CardContent>
@@ -485,7 +544,7 @@ export default function VendorAnalytics() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={vendorContribution}
+                    data={realVendorContribution}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -494,7 +553,7 @@ export default function VendorAnalytics() {
                     dataKey="value"
                     label={({ name }) => name}
                   >
-                    {vendorContribution.map((_, index) => (
+                    {realVendorContribution.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -607,18 +666,42 @@ export default function VendorAnalytics() {
         <div className="lg:col-span-1">
           <Card className="h-full">
             <CardHeader>
-              <CardTitle>{realVendorData.length > 0 ? 'Top Products' : 'Top Products (Mockup)'}</CardTitle>
-              <CardDescription>Most ordered products by vendors</CardDescription>
+              <CardTitle>{realVendorData.length > 0 ? 'Top Products (All Vendors)' : 'Top Products (Mockup)'}</CardTitle>
+              <CardDescription>Most ordered products across all vendors</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {displayVendors[0]?.products?.length > 0 ? (
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {allProducts.length > 0 ? (
+                  allProducts.map((product, i) => {
+                    const maxOrders = allProducts[0]?.totalOrders || 1;
+                    const percentage = Math.round((product.totalOrders / maxOrders) * 100);
+                    
+                    return (
+                      <div key={i} className="space-y-2 p-3 border rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{product.name}</p>
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                              <span>{product.totalOrders} orders</span>
+                              <span>{product.totalQuantity} qty</span>
+                              <span>{product.vendorCount} vendor{product.vendorCount > 1 ? 's' : ''}</span>
+                            </div>
+                          </div>
+                          <span className="text-sm font-medium">{percentage}%</span>
+                        </div>
+                        <Progress value={percentage} className="h-2" />
+                        <div className="text-xs text-muted-foreground">
+                          Vendors: {product.vendors.slice(0, 2).join(', ')}{product.vendors.length > 2 ? ` +${product.vendors.length - 2} more` : ''}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : displayVendors[0]?.products?.length > 0 ? (
                   displayVendors[0].products.map((product, i) => {
-                    const isRealData = realVendorData.length > 0;
-                    const productName = isRealData ? product.name : (typeof product === 'string' ? product : product.name);
-                    const orderCount = isRealData ? product.orderCount : (typeof product === 'object' ? product.orderCount : 25);
+                    const productName = typeof product === 'string' ? product : product.name;
+                    const orderCount = typeof product === 'object' ? product.orderCount : 25;
                     const maxOrders = displayVendors[0].products.reduce((max, p) => {
-                      const count = isRealData ? p.orderCount : (typeof p === 'object' ? p.orderCount : 25);
+                      const count = typeof p === 'object' ? p.orderCount : 25;
                       return Math.max(max, count);
                     }, 1);
                     const percentage = Math.round((orderCount / maxOrders) * 100);
