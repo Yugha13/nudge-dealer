@@ -599,64 +599,66 @@ export default function VendorAnalytics() {
                 <Button>Add Vendor</Button>
               </div>
               <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Vendor</TableHead>
-                      <TableHead>Orders</TableHead>
-                      <TableHead>Revenue</TableHead>
-                      <TableHead>Fill Rate</TableHead>
-                      <TableHead>Reliability</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {displayVendors.map((vendor) => (
-                      <TableRow key={vendor.id}>
-                        <TableCell className="font-medium">
-                          <Link to={`/vendors/${vendor.id}`} className="text-primary hover:underline">
-                            {vendor.name}
-                          </Link>
-                        </TableCell>
-                        <TableCell>
-                          {vendor.orders}
-                        </TableCell>
-                        <TableCell>
-                          ₹{vendor.revenue >= 100000 ? `${(vendor.revenue / 100000).toFixed(1)}L` : vendor.revenue >= 1000 ? `${(vendor.revenue / 1000).toFixed(1)}K` : vendor.revenue.toFixed(0)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className="w-16 mr-2">
-                              <Progress value={vendor.fillRate} className="h-2" />
-                            </div>
-                            <span>{vendor.fillRate}%</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1" />
-                            {vendor.reliability}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant={vendor.status === 'active' ? 'default' : 'secondary'}
-                            className={vendor.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
-                          >
-                            {vendor.status === 'active' ? 'Active' : 'Inactive'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">More</span>
-                          </Button>
-                        </TableCell>
+                <div className="max-h-96 overflow-y-auto">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-background z-10">
+                      <TableRow>
+                        <TableHead>Vendor</TableHead>
+                        <TableHead>Orders</TableHead>
+                        <TableHead>Revenue</TableHead>
+                        <TableHead>Fill Rate</TableHead>
+                        <TableHead>Reliability</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {displayVendors.map((vendor) => (
+                        <TableRow key={vendor.id}>
+                          <TableCell className="font-medium">
+                            <Link to={`/vendors/${vendor.id}`} className="text-primary hover:underline">
+                              {vendor.name}
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            {vendor.orders}
+                          </TableCell>
+                          <TableCell>
+                            ₹{vendor.revenue >= 100000 ? `${(vendor.revenue / 100000).toFixed(1)}L` : vendor.revenue >= 1000 ? `${(vendor.revenue / 1000).toFixed(1)}K` : vendor.revenue.toFixed(0)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <div className="w-16 mr-2">
+                                <Progress value={vendor.fillRate} className="h-2" />
+                              </div>
+                              <span>{vendor.fillRate}%</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1" />
+                              {vendor.reliability}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={vendor.status === 'active' ? 'default' : 'secondary'}
+                              className={vendor.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
+                            >
+                              {vendor.status === 'active' ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">More</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -669,8 +671,8 @@ export default function VendorAnalytics() {
               <CardTitle>{realVendorData.length > 0 ? 'Top Products (All Vendors)' : 'Top Products (Mockup)'}</CardTitle>
               <CardDescription>Most ordered products across all vendors</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
+            <CardContent className="h-96">
+              <div className="space-y-4 h-full overflow-y-auto pr-2">
                 {allProducts.length > 0 ? (
                   allProducts.map((product, i) => {
                     const maxOrders = allProducts[0]?.totalOrders || 1;

@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/card"
 import { type ChartConfig, ChartContainer } from "@/components/ui/chart"
 import { SumOfBilling } from "@/lib/calculation"
+import { DashboardRevenue } from "@/charts/dashboard-revenue";
 
 export const description = "A radial chart with text"
 
@@ -97,71 +98,7 @@ export default function DealersDashboard() {
           {/* Performance Gauge - 2 parts */}
           <div className="h-2/4">
             <div className="h-full w-full p-2">
-              <Card className="h-full flex flex-col">
-                <CardHeader className="items-center p-4 pb-2">
-                  <CardTitle className="text-lg">Revenue Vs Target</CardTitle>
-                  <CardDescription className="text-xs">January - Sept 2025</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 flex items-center justify-center p-2">
-                  <ChartContainer
-                    config={chartConfig}
-                    className="w-full h-full max-h-[200px]"
-                  >
-                    <RadialBarChart
-                      data={chartData}
-                      startAngle={0}
-                      endAngle={250}
-                      innerRadius="70%"
-                      outerRadius="100%"
-                    >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[86, 74]}
-                      />
-                      <RadialBar 
-                        dataKey="Rev" 
-                        background 
-                        cornerRadius={10} 
-                        className="fill-primary"
-                      />
-                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-2xl font-bold"
-                                  >
-                                    {chartData[0].visitors.toLocaleString()+"Cr"}
-                                  </tspan>
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground text-sm"
-                                  >
-                                    revenue
-                                  </tspan>
-                                </text>
-                              )
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
-                    </RadialBarChart>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
+              <DashboardRevenue/>
             </div>
           </div>
           
