@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Trash2, Edit, Target, TrendingUp, DollarSign, Users, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -14,14 +14,23 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  SumOfBilling, 
+  FillRate, 
+  LineFillRate, 
+  NonZeroFillRate, 
+  TotalOrders,
+  getAllMetrics 
+} from '@/lib/calculation';
 
 type Status = 'todo' | 'in_progress' | 'completed';
+type RealTimeCategory = 'revenue' | 'fillrate' | 'linefillrate' | 'nzfr' | 'orders' | 'custom';
 
 interface BusinessTarget {
   id: string;
   title: string;
   description: string;
-  category: 'revenue' | 'sales' | 'customers' | 'inventory' | 'other';
+  category: RealTimeCategory;
   currentValue: number;
   targetValue: number;
   progress: number;
@@ -30,14 +39,110 @@ interface BusinessTarget {
   createdAt: string;
   updatedAt: string;
   owner: string;
+  isRealTime: boolean;
 }
 
 const categoryIcons = {
   revenue: <DollarSign className="h-4 w-4" />,
-  sales: <TrendingUp className="h-4 w-4" />,
-  customers: <Users className="h-4 w-4" />,
-  inventory: <Package className="h-4 w-4" />,
-  other: <Target className="h-4 w-4" />
+  fillrate: <TrendingUp className="h-4 w-4" />,
+  linefillrate: <Users className="h-4 w-4" />,
+  nzfr: <Package className="h-4 w-4" />,
+  orders: <Target className="h-4 w-4" />,
+  custom: <Target className="h-4 w-4" />
+};
+
+// Get real-time value for a category
+const getRealTimeValue = (category: RealTimeCategory): number => {
+  const metrics = getAllMetrics();
+  switch (category) {
+    case 'revenue': return metrics.revenue;
+    case 'fillrate': return metrics.fillRate;
+    case 'linefillrate': return metrics.lineFillRate;
+    case 'nzfr': return metrics.nzfr;
+    case 'orders': return metrics.totalOrders;
+    default: return 0;
+  }
+};
+
+const updateTargetStatus = (currentValue: number, targetValue: number): Status => {
+  if (targetValue === 0) return 'todo';
+  const progress = (currentValue / targetValue) * 100;
+  if (progress >= 100) return 'completed';
+  if (progress > 0) return 'in_progress';
+  return 'todo';
+};
+
+const defaultTargets: BusinessTarget[] = [
+  {
+    id: '1',
+    title: 'Monthly Revenue Target',
+    description: 'Achieve monthly revenue goal',
+    category: 'revenue',
+    currentValue: SumOfBilling(),
+    targetValue: 100000,
+    progress: 0,
+    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    status: 'todo',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    owner: 'John Doe',
+    isRealTime: true
+  },
+  {
+    id: '2',
+    title: 'Fill Rate Improvement',
+    description: 'Improve overall fill rate performance',
+    category: 'fillrate',
+    currentValue: FillRate(),
+    targetValue: 85,
+    progress: 0,
+    deadline: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    status: 'todo',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    owner: 'John Doe',
+    isRealTime: true
+  },
+  {
+    id: '3',
+    title: 'Order Volume Growth',
+    description: 'Increase total order count',
+    category: 'orders',
+    currentValue: TotalOrders(),
+    targetValue: 500,
+    progress: 0,
+    deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    status: 'todo',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    owner: 'John Doe',
+    isRealTime: true
+  }
+];
+
+const loadTargetsFromStorage = (): BusinessTarget[] => {
+  const stored = localStorage.getItem('business-targets');
+  if (stored) {
+    const parsedTargets = JSON.parse(stored);
+    return parsedTargets.map((target: BusinessTarget) => {
+      if (target.isRealTime) {
+        const currentValue = getRealTimeValue(target.category);
+        const progress = target.targetValue > 0 ? Math.min(100, Math.round((currentValue / target.targetValue) * 100)) : 0;
+        const status = updateTargetStatus(currentValue, target.targetValue);
+        return { ...target, currentValue, progress, status };
+      }
+      return target;
+    });
+  }
+  return defaultTargets.map(target => {
+    const progress = target.targetValue > 0 ? Math.min(100, Math.round((target.currentValue / target.targetValue) * 100)) : 0;
+    const status = updateTargetStatus(target.currentValue, target.targetValue);
+    return { ...target, progress, status };
+  });
+};
+
+const saveTargetsToStorage = (targets: BusinessTarget[]) => {
+  localStorage.setItem('business-targets', JSON.stringify(targets));
 };
 
 const statusColors = {
@@ -52,64 +157,7 @@ const statusLabels = {
   completed: 'Completed'
 };
 
-const mockTargets: BusinessTarget[] = [
-  {
-    id: '1',
-    title: 'Quarterly Revenue',
-    description: 'Achieve $500K in Q2 revenue',
-    category: 'revenue',
-    currentValue: 0,
-    targetValue: 500000,
-    progress: 0,
-    deadline: '2023-06-30',
-    status: 'todo',
-    createdAt: '2023-04-01',
-    updatedAt: '2023-05-15',
-    owner: 'John Doe'
-  },
-  {
-    id: '2',
-    title: 'Monthly Sales Target',
-    description: 'Sell 1,000 units of Product X',
-    category: 'sales',
-    currentValue: 350,
-    targetValue: 1000,
-    progress: 35,
-    deadline: '2023-05-31',
-    status: 'in_progress',
-    createdAt: '2023-05-01',
-    updatedAt: '2023-05-15',
-    owner: 'Jane Smith'
-  },
-  {
-    id: '3',
-    title: 'Customer Acquisition',
-    description: 'Acquire 500 new customers',
-    category: 'customers',
-    currentValue: 500,
-    targetValue: 500,
-    progress: 100,
-    deadline: '2023-12-31',
-    status: 'completed',
-    createdAt: '2023-01-01',
-    updatedAt: '2023-05-15',
-    owner: 'Alex Johnson'
-  },
-  {
-    id: '4',
-    title: 'Inventory Reduction',
-    description: 'Reduce excess inventory by 30%',
-    category: 'inventory',
-    currentValue: 5,
-    targetValue: 30,
-    progress: 16,
-    deadline: '2023-07-31',
-    status: 'in_progress',
-    createdAt: '2023-03-15',
-    updatedAt: '2023-05-15',
-    owner: 'Sarah Wilson'
-  }
-];
+
 
 
 function TargetCard({ target, onDelete, onEdit }: { target: BusinessTarget; onDelete: (id: string) => void; onEdit: (target: BusinessTarget) => void }) {
@@ -157,11 +205,19 @@ function TargetCard({ target, onDelete, onEdit }: { target: BusinessTarget; onDe
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <div className="text-muted-foreground">Current</div>
-              <div className="font-medium">${target.currentValue.toLocaleString()}</div>
+              <div className="font-medium">
+                {target.category === 'revenue' ? `₹${target.currentValue.toLocaleString()}` : 
+                 ['fillrate', 'linefillrate', 'nzfr'].includes(target.category) ? `${target.currentValue.toFixed(1)}%` :
+                 target.currentValue.toLocaleString()}
+              </div>
             </div>
             <div className="text-right">
               <div className="text-muted-foreground">Target</div>
-              <div className="font-medium">${target.targetValue.toLocaleString()}</div>
+              <div className="font-medium">
+                {target.category === 'revenue' ? `₹${target.targetValue.toLocaleString()}` : 
+                 ['fillrate', 'linefillrate', 'nzfr'].includes(target.category) ? `${target.targetValue}%` :
+                 target.targetValue.toLocaleString()}
+              </div>
             </div>
           </div>
           
@@ -200,9 +256,22 @@ function AddEditTargetDialog({
       progress: 0,
       status: 'todo',
       deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      owner: 'John Doe'
+      owner: 'John Doe',
+      isRealTime: false
     }
   );
+
+  const handleCategoryChange = (category: RealTimeCategory) => {
+    const isRealTime = category !== 'custom';
+    const currentValue = isRealTime ? getRealTimeValue(category) : formData.currentValue;
+    setFormData(prev => ({
+      ...prev,
+      category,
+      currentValue,
+      isRealTime,
+      progress: prev.targetValue > 0 ? Math.min(100, Math.round((currentValue / prev.targetValue) * 100)) : 0
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,14 +281,17 @@ function AddEditTargetDialog({
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: parseFloat(value) || 0,
-      progress: name === 'currentValue' || name === 'targetValue' 
-        ? Math.min(100, Math.round(((name === 'currentValue' ? parseFloat(value) : prev.currentValue) / 
-                                   (name === 'targetValue' ? parseFloat(value) : prev.targetValue)) * 100) || 0)
-        : prev.progress
-    }));
+    const numValue = parseFloat(value) || 0;
+    setFormData(prev => {
+      const currentValue = name === 'currentValue' ? numValue : prev.currentValue;
+      const targetValue = name === 'targetValue' ? numValue : prev.targetValue;
+      const progress = targetValue > 0 ? Math.min(100, Math.round((currentValue / targetValue) * 100)) : 0;
+      return {
+        ...prev,
+        [name]: numValue,
+        progress
+      };
+    });
   };
 
   return (
@@ -254,7 +326,7 @@ function AddEditTargetDialog({
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 className="col-span-3"
-                required
+                placeholder="Optional description"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -263,17 +335,18 @@ function AddEditTargetDialog({
               </Label>
               <Select
                 value={formData.category}
-                onValueChange={(value) => setFormData({...formData, category: value as any})}
+                onValueChange={handleCategoryChange}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="revenue">Revenue</SelectItem>
-                  <SelectItem value="sales">Sales</SelectItem>
-                  <SelectItem value="customers">Customers</SelectItem>
-                  <SelectItem value="inventory">Inventory</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="revenue">Revenue (Real-time)</SelectItem>
+                  <SelectItem value="fillrate">Fill Rate (Real-time)</SelectItem>
+                  <SelectItem value="linefillrate">Line Fill Rate (Real-time)</SelectItem>
+                  <SelectItem value="nzfr">NZFR (Real-time)</SelectItem>
+                  <SelectItem value="orders">Total Orders (Real-time)</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -367,9 +440,74 @@ function AddEditTargetDialog({
 // ...
 
 const Targets = () => {
-  const [targets, setTargets] = useState<BusinessTarget[]>(mockTargets);
+  const [targets, setTargets] = useState<BusinessTarget[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTarget, setEditingTarget] = useState<BusinessTarget | null>(null);
+
+  useEffect(() => {
+    const initialTargets = loadTargetsFromStorage();
+    setTargets(initialTargets);
+    saveTargetsToStorage(initialTargets);
+  }, []);
+
+  // Update targets with real-time data
+  const updateRealTimeTargets = useCallback(() => {
+    setTargets(prevTargets => {
+      const updated = prevTargets.map(target => {
+        if (!target.isRealTime) return target;
+        
+        // Get current value based on category
+        let currentValue: number;
+        switch (target.category) {
+          case 'revenue':
+            currentValue = SumOfBilling();
+            break;
+          case 'fillrate':
+            currentValue = FillRate();
+            break;
+          case 'linefillrate':
+            currentValue = LineFillRate();
+            break;
+          case 'nzfr':
+            currentValue = NonZeroFillRate();
+            break;
+          case 'orders':
+            currentValue = TotalOrders();
+            break;
+          default:
+            currentValue = target.currentValue;
+        }
+        
+        // Calculate progress and status
+        const progress = target.targetValue > 0 
+          ? Math.min(100, (currentValue / target.targetValue) * 100) 
+          : 0;
+        const status = updateTargetStatus(currentValue, target.targetValue);
+        
+        return {
+          ...target,
+          currentValue,
+          progress,
+          status,
+          updatedAt: new Date().toISOString()
+        };
+      });
+      
+      // Save to storage
+      saveTargetsToStorage(updated);
+      return updated;
+    });
+  }, []);
+
+  // Set up real-time updates
+  useEffect(() => {
+    // Initial update
+    updateRealTimeTargets();
+    
+    // Update every 2 seconds
+    const interval = setInterval(updateRealTimeTargets, 2000);
+    return () => clearInterval(interval);
+  }, [updateRealTimeTargets]);
 
   // Group targets by status for the columns
   const todoTargets = targets.filter(target => target.status === 'todo');
@@ -388,28 +526,30 @@ const Targets = () => {
 
   const handleDeleteTarget = (id: string) => {
     if (window.confirm('Are you sure you want to delete this target?')) {
-      setTargets(prev => prev.filter(t => t.id !== id));
+      const updatedTargets = targets.filter(t => t.id !== id);
+      setTargets(updatedTargets);
+      saveTargetsToStorage(updatedTargets);
     }
   };
 
   const handleSaveTarget = (targetData: Omit<BusinessTarget, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (editingTarget) {
-      setTargets(targets.map(t => t.id === editingTarget.id ? { 
-        ...t, 
-        ...targetData, 
-        status: targetData.status as Status, // Ensure status is of type Status
-        updatedAt: new Date().toISOString() 
-      } : t));
-    } else {
-      const newTarget: BusinessTarget = {
-        ...targetData,
-        status: targetData.status as Status, // Ensure status is of type Status
-        id: Math.random().toString(36).substr(2, 9),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      setTargets([...targets, newTarget]);
-    }
+    const updatedTargets = editingTarget
+      ? targets.map(t => t.id === editingTarget.id ? { 
+          ...t, 
+          ...targetData, 
+          status: updateTargetStatus(targetData.currentValue, targetData.targetValue),
+          updatedAt: new Date().toISOString() 
+        } : t)
+      : [...targets, {
+          ...targetData,
+          status: updateTargetStatus(targetData.currentValue, targetData.targetValue),
+          id: Math.random().toString(36).substr(2, 9),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }];
+    
+    setTargets(updatedTargets);
+    saveTargetsToStorage(updatedTargets);
     setDialogOpen(false);
     setEditingTarget(null);
   };
@@ -424,10 +564,13 @@ const Targets = () => {
       </div>
 
       <div className="space-y-6">
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-muted-foreground">Recommendations</h2>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
           {/* Vertical separating lines */}
-          <div className="hidden md:block absolute left-1/3 top-0 bottom-0 w-px bg-border"></div>
-          <div className="hidden md:block absolute left-2/3 top-0 bottom-0 w-px bg-border"></div>
+          <div className="hidden md:block absolute left-1/3 top-0 bottom-0 w-px bg-border pointer-events-none"></div>
+          <div className="hidden md:block absolute left-2/3 top-0 bottom-0 w-px bg-border pointer-events-none"></div>
           
           {/* Todo Column */}
           <div className="space-y-4">

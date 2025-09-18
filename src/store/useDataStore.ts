@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { StoreApi } from 'zustand';
 
 export type PO = {
   poNumber: string;
@@ -34,7 +35,8 @@ type Store = {
   clearAll: () => void;
 };
 
-export const useDataStore = create<Store>()(
+// Create the store
+const store = create<Store>()(
   persist(
     (set, get) => ({
       pos: [],
@@ -84,16 +86,27 @@ export const useDataStore = create<Store>()(
     }),
     {
       name: "erp-data-storage",
-      onRehydrateStorage: () => {
-        console.log("Store hydration started");
-        return (state, error) => {
-          if (error) {
-            console.error("Store hydration error:", error);
-          } else {
-            console.log("Store hydrated successfully:", state);
-          }
-        };
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        console.log('Hydration starts');
+        
+        // Optional: Validate the rehydrated state here if needed
+        if (!state.pos) state.pos = [];
+        if (!state.openpos) state.openpos = [];
+        if (!state.landingRates) state.landingRates = [];
+        
+        console.log('Hydration finished');
       },
     }
   )
 );
+
+// Export the store for use in React components
+export const useDataStore = store;
+
+// Make the store available on the window object for non-React code
+if (typeof window !== 'undefined') {
+  window.__DATA_STORE__ = store;
+}
+
+export type { Store };
